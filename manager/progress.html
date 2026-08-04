@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Progress Dashboard — ITPAS Manager</title>
+  <link rel="stylesheet" href="../css/main.css">
+  <link rel="stylesheet" href="../css/components.css">
+  <link rel="stylesheet" href="../css/dark-mode.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+</head>
+<body>
+  <div class="app-shell">
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-brand">
+        <div class="sidebar-brand-icon"><i class="fa-solid fa-graduation-cap"></i></div>
+        <div class="sidebar-brand-text">
+          <div class="brand-name">ITPAS</div>
+          <div class="brand-sub">Manager Portal</div>
+        </div>
+      </div>
+      <div class="sidebar-user">
+        <div id="user-avatar-slot"></div>
+        <div class="sidebar-user-info">
+          <div class="sidebar-user-name" id="user-name-label">Loading...</div>
+          <div class="sidebar-user-role">Manager</div>
+        </div>
+      </div>
+      <nav class="sidebar-nav">
+        <div class="nav-section-label">Main Menu</div>
+        <a href="dashboard.html" class="nav-item"><i class="fa-solid fa-chart-pie nav-icon"></i> Overview</a>
+        <a href="interns.html" class="nav-item"><i class="fa-solid fa-users nav-icon"></i> Interns</a>
+        <a href="add-intern.html" class="nav-item"><i class="fa-solid fa-user-plus nav-icon"></i> Register Intern</a>
+        <a href="tasks.html" class="nav-item"><i class="fa-solid fa-list-check nav-icon"></i> Task Management</a>
+        <a href="review-queue.html" class="nav-item"><i class="fa-solid fa-clock-rotate-left nav-icon"></i> Review Queue</a>
+        <a href="progress.html" class="nav-item active"><i class="fa-solid fa-chart-line nav-icon"></i> Progress Dashboard</a>
+        <a href="reports.html" class="nav-item"><i class="fa-solid fa-file-lines nav-icon"></i> Daily Reports</a>
+        <div class="nav-section-label">Account</div>
+        <a href="profile.html" class="nav-item"><i class="fa-solid fa-user-gear nav-icon"></i> Profile Settings</a>
+      </nav>
+      <div class="sidebar-footer">
+        <a href="#" class="nav-item" onclick="Auth.logout()"><i class="fa-solid fa-right-from-bracket nav-icon"></i> Logout</a>
+      </div>
+    </aside>
+
+    <header class="topbar">
+      <button class="hamburger-btn" onclick="toggleSidebar()"><i class="fa-solid fa-bars"></i></button>
+      <div>
+        <h1 class="topbar-title">Overall Progress Dashboard</h1>
+        <div class="topbar-subtitle">Analytics, completion metrics, and detailed intern breakdown</div>
+      </div>
+      <div class="topbar-actions">
+        <button class="btn btn-success btn-sm" onclick="Exporter.exportAllInternsExcel()">
+          <i class="fa-solid fa-file-excel"></i> Export Excel Report
+        </button>
+      </div>
+    </header>
+
+    <main class="main-content">
+      <!-- Stats Overview -->
+      <div class="stats-grid">
+        <div class="stat-card" style="--card-color: var(--primary);">
+          <div class="stat-icon" style="color: var(--primary);"><i class="fa-solid fa-users"></i></div>
+          <div>
+            <div class="stat-value" id="stat-total-interns">0</div>
+            <div class="stat-label">Total Enrolled Interns</div>
+          </div>
+        </div>
+        <div class="stat-card" style="--card-color: var(--success);">
+          <div class="stat-icon" style="color: var(--success);"><i class="fa-solid fa-circle-check"></i></div>
+          <div>
+            <div class="stat-value" id="stat-completed-tasks">0</div>
+            <div class="stat-label">Total Tasks Completed</div>
+          </div>
+        </div>
+        <div class="stat-card" style="--card-color: var(--warning);">
+          <div class="stat-icon" style="color: var(--warning);"><i class="fa-solid fa-clock"></i></div>
+          <div>
+            <div class="stat-value" id="stat-pending-reviews">0</div>
+            <div class="stat-label">Tasks Pending Review</div>
+          </div>
+        </div>
+        <div class="stat-card" style="--card-color: var(--danger);">
+          <div class="stat-icon" style="color: var(--danger);"><i class="fa-solid fa-rotate-left"></i></div>
+          <div>
+            <div class="stat-value" id="stat-revision-requests">0</div>
+            <div class="stat-label">Revision Requests</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Charts Section -->
+      <div class="content-grid">
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">Intern Task Progression</div>
+          </div>
+          <div class="chart-container">
+            <canvas id="chart-intern-bar"></canvas>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">Submission Activity Timeline</div>
+          </div>
+          <div class="chart-container">
+            <canvas id="chart-submissions-line"></canvas>
+          </div>
+        </div>
+      </div>
+
+      <!-- Comprehensive Intern Progress Table -->
+      <div class="card">
+        <div class="card-header">
+          <div>
+            <div class="card-title">Intern Progression Breakdown</div>
+            <div class="card-subtitle">Real-time status of Tasks 1 through 20 per intern</div>
+          </div>
+          <div class="search-box" style="margin: 0; min-width: 240px;">
+            <i class="fa-solid fa-magnifying-glass search-icon"></i>
+            <input type="text" id="table-search" class="form-control" placeholder="Search table..." oninput="renderProgressTable()">
+          </div>
+        </div>
+
+        <div class="table-wrapper">
+          <table>
+            <thead>
+              <tr>
+                <th>Intern Name</th>
+                <th>Pending Review</th>
+                <th>Completed</th>
+                <th>In Progress</th>
+                <th>Remaining</th>
+                <th>Completion %</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="progress-table-body"></tbody>
+          </table>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script src="../js/db.js"></script>
+  <script src="../js/auth.js"></script>
+  <script src="../js/automation.js"></script>
+  <script src="../js/utils.js"></script>
+  <script src="../js/charts.js"></script>
+  <script src="../js/export.js"></script>
+  <script>
+    Auth.requireRole('manager');
+    const user = Auth.currentUser();
+
+    document.addEventListener('DOMContentLoaded', () => {
+      document.getElementById('user-name-label').textContent = user.name;
+      document.getElementById('user-avatar-slot').innerHTML = Utils.avatarHtml(user, 36);
+
+      loadStats();
+      renderCharts();
+      renderProgressTable();
+    });
+
+    function loadStats() {
+      const interns = DB.Interns.all();
+      const assignments = DB.Assignments.all();
+
+      document.getElementById('stat-total-interns').textContent = interns.length;
+      document.getElementById('stat-completed-tasks').textContent = assignments.filter(a => a.status === 'Completed').length;
+      document.getElementById('stat-pending-reviews').textContent = assignments.filter(a => a.status === 'Pending Review').length;
+      document.getElementById('stat-revision-requests').textContent = assignments.filter(a => a.status === 'Request Revision').length;
+    }
+
+    function renderCharts() {
+      Charts.renderInternProgressBar('chart-intern-bar');
+      Charts.renderSubmissionsLine('chart-submissions-line');
+    }
+
+    function renderProgressTable() {
+      const q = document.getElementById('table-search').value.trim().toLowerCase();
+      const tbody = document.getElementById('progress-table-body');
+      let interns = DB.Interns.allWithUsers();
+
+      if (q) {
+        interns = interns.filter(i => i.user.name.toLowerCase().includes(q) || i.user.email.toLowerCase().includes(q));
+      }
+
+      if (!interns.length) {
+        tbody.innerHTML = `<tr><td colspan="7" class="text-muted" style="text-align: center; padding: 2rem;">No intern record found.</td></tr>`;
+        return;
+      }
+
+      tbody.innerHTML = interns.map(intern => {
+        const summary = Automation.getSummary(intern.id);
+        const completionPct = Automation.getCompletionPercentage(intern.id);
+
+        return `
+          <tr>
+            <td>
+              <div style="display: flex; align-items: center; gap: 0.75rem;">
+                ${Utils.avatarHtml(intern.user, 36)}
+                <div>
+                  <div style="font-weight: 700; color: var(--text-primary);">${Utils.escHtml(intern.user.name)}</div>
+                  <div style="font-size: 0.75rem; color: var(--text-muted);">${Utils.escHtml(intern.course || '')}</div>
+                </div>
+              </div>
+            </td>
+            <td><span class="status-badge badge-pending">${summary.pending}</span></td>
+            <td><span class="status-badge badge-completed">${summary.completed}</span></td>
+            <td><span class="status-badge badge-in-progress">${summary.inProgress}</span></td>
+            <td><strong>${summary.remaining}</strong></td>
+            <td class="progress-row-bar">
+              <div style="display: flex; align-items: center; gap: 0.75rem;">
+                <div class="progress-track" style="flex: 1;">
+                  <div class="progress-fill" style="width: ${completionPct}%;"></div>
+                </div>
+                <span style="font-weight: 700; font-size: 0.8rem; min-width: 36px;">${completionPct}%</span>
+              </div>
+            </td>
+            <td>
+              <div style="display: flex; gap: 0.25rem;">
+                <button onclick="Exporter.exportProgressPDF('${intern.id}')" class="btn btn-ghost btn-sm btn-icon" title="PDF Report"><i class="fa-solid fa-file-pdf" style="color: var(--danger);"></i></button>
+                <button onclick="Exporter.exportInternTasksExcel('${intern.id}')" class="btn btn-ghost btn-sm btn-icon" title="Excel Report"><i class="fa-solid fa-file-excel" style="color: var(--success);"></i></button>
+              </div>
+            </td>
+          </tr>`;
+      }).join('');
+    }
+
+    function toggleSidebar() {
+      document.getElementById('sidebar').classList.toggle('open');
+    }
+  </script>
+</body>
+</html>

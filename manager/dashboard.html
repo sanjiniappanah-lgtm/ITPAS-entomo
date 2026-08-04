@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Manager Dashboard — ITPAS</title>
+  <link rel="stylesheet" href="../css/main.css">
+  <link rel="stylesheet" href="../css/components.css">
+  <link rel="stylesheet" href="../css/dark-mode.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+  <div class="app-shell">
+    <!-- Sidebar -->
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-brand">
+        <div class="sidebar-brand-icon"><i class="fa-solid fa-graduation-cap"></i></div>
+        <div class="sidebar-brand-text">
+          <div class="brand-name">ITPAS</div>
+          <div class="brand-sub">Manager Portal</div>
+        </div>
+      </div>
+
+      <div class="sidebar-user">
+        <div id="user-avatar-slot"></div>
+        <div class="sidebar-user-info">
+          <div class="sidebar-user-name" id="user-name-label">Loading...</div>
+          <div class="sidebar-user-role">Manager</div>
+        </div>
+      </div>
+
+      <nav class="sidebar-nav">
+        <div class="nav-section-label">Main Menu</div>
+        <a href="dashboard.html" class="nav-item active">
+          <i class="fa-solid fa-chart-pie nav-icon"></i> Overview
+        </a>
+        <a href="interns.html" class="nav-item">
+          <i class="fa-solid fa-users nav-icon"></i> Interns
+        </a>
+        <a href="add-intern.html" class="nav-item">
+          <i class="fa-solid fa-user-plus nav-icon"></i> Register Intern
+        </a>
+        <a href="tasks.html" class="nav-item">
+          <i class="fa-solid fa-list-check nav-icon"></i> Task Management
+        </a>
+        <a href="review-queue.html" class="nav-item">
+          <i class="fa-solid fa-clock-rotate-left nav-icon"></i> Review Queue
+          <span class="nav-badge" id="badge-review-count">0</span>
+        </a>
+        <a href="progress.html" class="nav-item">
+          <i class="fa-solid fa-chart-line nav-icon"></i> Progress Dashboard
+        </a>
+        <a href="reports.html" class="nav-item">
+          <i class="fa-solid fa-file-lines nav-icon"></i> Daily Reports
+        </a>
+
+        <div class="nav-section-label">Account</div>
+        <a href="profile.html" class="nav-item">
+          <i class="fa-solid fa-user-gear nav-icon"></i> Profile Settings
+        </a>
+      </nav>
+
+      <div class="sidebar-footer">
+        <a href="#" class="nav-item" onclick="Auth.logout()">
+          <i class="fa-solid fa-right-from-bracket nav-icon"></i> Logout
+        </a>
+      </div>
+    </aside>
+
+    <!-- Topbar -->
+    <header class="topbar">
+      <button class="hamburger-btn" onclick="toggleSidebar()"><i class="fa-solid fa-bars"></i></button>
+      <div>
+        <h1 class="topbar-title">Manager Dashboard</h1>
+        <div class="topbar-subtitle">Overview of internship progress & pending tasks</div>
+      </div>
+      <div class="topbar-actions">
+        <button class="topbar-btn" id="dark-mode-toggle" onclick="Utils.toggleDarkMode()" title="Toggle Dark Mode">🌙</button>
+        <div style="position: relative;">
+          <button class="topbar-btn" onclick="toggleNotifDropdown()" title="Notifications">
+            <i class="fa-solid fa-bell"></i>
+            <span class="notif-badge" id="notif-badge">0</span>
+          </button>
+          <div class="notif-dropdown" id="notif-dropdown">
+            <div class="notif-header">
+              <span>Notifications</span>
+              <button class="btn btn-ghost btn-sm" onclick="DB.Notifications.markAllRead(Auth.getSession().userId); Utils.updateNotificationBadge(); renderNotifs();">Mark all read</button>
+            </div>
+            <div id="notif-list-container"></div>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="main-content">
+      <!-- Stats Row -->
+      <div class="stats-grid">
+        <div class="stat-card" style="--card-color: var(--primary); --card-bg: var(--primary-glow);">
+          <div class="stat-icon" style="color: var(--primary);"><i class="fa-solid fa-users"></i></div>
+          <div>
+            <div class="stat-value" id="stat-total-interns">0</div>
+            <div class="stat-label">Total Interns</div>
+          </div>
+        </div>
+
+        <div class="stat-card" style="--card-color: var(--success); --card-bg: var(--success-light);">
+          <div class="stat-icon" style="color: var(--success);"><i class="fa-solid fa-circle-check"></i></div>
+          <div>
+            <div class="stat-value" id="stat-completed-tasks">0</div>
+            <div class="stat-label">Completed Tasks</div>
+          </div>
+        </div>
+
+        <div class="stat-card" style="--card-color: var(--warning); --card-bg: var(--warning-light);">
+          <div class="stat-icon" style="color: var(--warning);"><i class="fa-solid fa-hourglass-half"></i></div>
+          <div>
+            <div class="stat-value" id="stat-pending-reviews">0</div>
+            <div class="stat-label">Pending Reviews</div>
+          </div>
+        </div>
+
+        <div class="stat-card" style="--card-color: var(--danger); --card-bg: var(--danger-light);">
+          <div class="stat-icon" style="color: var(--danger);"><i class="fa-solid fa-rotate-left"></i></div>
+          <div>
+            <div class="stat-value" id="stat-revision-requests">0</div>
+            <div class="stat-label">Revision Requests</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Charts & Review Queue Section -->
+      <div style="margin-bottom: 1.75rem;">
+        <div class="card">
+          <div class="card-header">
+            <div>
+              <div class="card-title">Intern Task Progression Overview</div>
+              <div class="card-subtitle">Task statuses across all enrolled interns</div>
+            </div>
+            <a href="progress.html" class="btn btn-ghost btn-sm">View Full Analytics <i class="fa-solid fa-arrow-right"></i></a>
+          </div>
+          <div class="chart-container">
+            <canvas id="intern-progress-chart"></canvas>
+          </div>
+        </div>
+      </div>
+
+      <div class="content-grid">
+        <!-- Review Queue Preview -->
+        <div class="card">
+          <div class="card-header">
+            <div>
+              <div class="card-title"><i class="fa-solid fa-clock-rotate-left" style="color: var(--warning);"></i> Pending Review Queue</div>
+              <div class="card-subtitle">Submissions requiring your approval</div>
+            </div>
+            <a href="review-queue.html" class="btn btn-primary btn-sm">Review All</a>
+          </div>
+          <div id="review-preview-list"></div>
+        </div>
+
+        <!-- Recent Activity Feed -->
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title"><i class="fa-solid fa-bolt" style="color: var(--primary);"></i> Recent Activity</div>
+          </div>
+          <div class="activity-list" id="activity-feed"></div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script src="../js/db.js"></script>
+  <script src="../js/auth.js"></script>
+  <script src="../js/automation.js"></script>
+  <script src="../js/utils.js"></script>
+  <script src="../js/charts.js"></script>
+  <script>
+    Auth.requireRole('manager');
+    const user = Auth.currentUser();
+
+    document.addEventListener('DOMContentLoaded', () => {
+      document.getElementById('user-name-label').textContent = user.name;
+      document.getElementById('user-avatar-slot').innerHTML = Utils.avatarHtml(user, 36);
+
+      loadStats();
+      loadReviewPreview();
+      loadRecentActivity();
+      renderCharts();
+      Utils.updateNotificationBadge();
+    });
+
+    function loadStats() {
+      const interns = DB.Interns.all();
+      const assignments = DB.Assignments.all();
+
+      document.getElementById('stat-total-interns').textContent = interns.length;
+      document.getElementById('stat-completed-tasks').textContent = assignments.filter(a => a.status === 'Completed').length;
+      document.getElementById('stat-pending-reviews').textContent = assignments.filter(a => a.status === 'Pending Review').length;
+      document.getElementById('stat-revision-requests').textContent = assignments.filter(a => a.status === 'Request Revision').length;
+
+      const pendingCount = assignments.filter(a => a.status === 'Pending Review').length;
+      document.getElementById('badge-review-count').textContent = pendingCount;
+    }
+
+    function loadReviewPreview() {
+      const container = document.getElementById('review-preview-list');
+      const pendingSubmissions = DB.Submissions.pending().slice(0, 4);
+
+      if (!pendingSubmissions.length) {
+        container.innerHTML = `
+          <div class="empty-state" style="padding: 2rem 1rem;">
+            <div class="empty-state-icon"><i class="fa-solid fa-circle-check" style="color: var(--success);"></i></div>
+            <h3>All Caught Up!</h3>
+            <p>There are no pending task submissions waiting for review.</p>
+          </div>`;
+        return;
+      }
+
+      container.innerHTML = pendingSubmissions.map(sub => {
+        const intern = DB.Interns.find(sub.internId);
+        const internUser = intern ? DB.Users.find(intern.userId) : null;
+        return `
+          <div class="review-card">
+            ${Utils.avatarHtml(internUser, 40)}
+            <div class="review-card-info">
+              <div class="review-card-name">${internUser ? Utils.escHtml(internUser.name) : 'Intern'}</div>
+              <div class="review-card-task">Task ${sub.taskNumber} — ${Utils.escHtml(DB.Tasks.findByNumber(sub.taskNumber)?.title || '')}</div>
+              <div class="review-card-meta">Submitted ${Utils.timeAgo(sub.submittedAt)}</div>
+            </div>
+            <div class="review-card-actions">
+              <a href="review-queue.html?subId=${sub.id}" class="btn btn-primary btn-sm"><i class="fa-solid fa-eye"></i> Review</a>
+            </div>
+          </div>`;
+      }).join('');
+    }
+
+    function loadRecentActivity() {
+      const container = document.getElementById('activity-feed');
+      const notifs = DB.Notifications.all().slice(0, 6);
+
+      if (!notifs.length) {
+        container.innerHTML = '<p class="text-muted" style="font-size:0.85rem; padding:1rem 0;">No recent system activity.</p>';
+        return;
+      }
+
+      container.innerHTML = notifs.map(n => `
+        <div class="activity-item">
+          <div class="activity-dot" style="background: var(--${n.type === 'success' ? 'success' : n.type === 'warning' ? 'warning' : 'primary'});"></div>
+          <div class="activity-text">
+            <div class="activity-msg">${Utils.escHtml(n.message)}</div>
+            <div class="activity-time">${Utils.timeAgo(n.createdAt)}</div>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function renderCharts() {
+      Charts.renderInternProgressBar('intern-progress-chart');
+    }
+
+    function toggleSidebar() {
+      document.getElementById('sidebar').classList.toggle('open');
+    }
+
+    function toggleNotifDropdown() {
+      const dropdown = document.getElementById('notif-dropdown');
+      dropdown.classList.toggle('open');
+      if (dropdown.classList.contains('open')) {
+        Utils.renderNotificationDropdown('notif-list-container');
+      }
+    }
+  </script>
+</body>
+</html>

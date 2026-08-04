@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Intern Daily Reports — ITPAS Manager</title>
+  <link rel="stylesheet" href="../css/main.css">
+  <link rel="stylesheet" href="../css/components.css">
+  <link rel="stylesheet" href="../css/dark-mode.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+  <div class="app-shell">
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-brand">
+        <div class="sidebar-brand-icon"><i class="fa-solid fa-graduation-cap"></i></div>
+        <div class="sidebar-brand-text">
+          <div class="brand-name">ITPAS</div>
+          <div class="brand-sub">Manager Portal</div>
+        </div>
+      </div>
+      <div class="sidebar-user">
+        <div id="user-avatar-slot"></div>
+        <div class="sidebar-user-info">
+          <div class="sidebar-user-name" id="user-name-label">Loading...</div>
+          <div class="sidebar-user-role">Manager</div>
+        </div>
+      </div>
+      <nav class="sidebar-nav">
+        <div class="nav-section-label">Main Menu</div>
+        <a href="dashboard.html" class="nav-item"><i class="fa-solid fa-chart-pie nav-icon"></i> Overview</a>
+        <a href="interns.html" class="nav-item"><i class="fa-solid fa-users nav-icon"></i> Interns</a>
+        <a href="add-intern.html" class="nav-item"><i class="fa-solid fa-user-plus nav-icon"></i> Register Intern</a>
+        <a href="tasks.html" class="nav-item"><i class="fa-solid fa-list-check nav-icon"></i> Task Management</a>
+        <a href="review-queue.html" class="nav-item"><i class="fa-solid fa-clock-rotate-left nav-icon"></i> Review Queue</a>
+        <a href="progress.html" class="nav-item"><i class="fa-solid fa-chart-line nav-icon"></i> Progress Dashboard</a>
+        <a href="reports.html" class="nav-item active"><i class="fa-solid fa-file-lines nav-icon"></i> Daily Reports</a>
+        <div class="nav-section-label">Account</div>
+        <a href="profile.html" class="nav-item"><i class="fa-solid fa-user-gear nav-icon"></i> Profile Settings</a>
+      </nav>
+      <div class="sidebar-footer">
+        <a href="#" class="nav-item" onclick="Auth.logout()"><i class="fa-solid fa-right-from-bracket nav-icon"></i> Logout</a>
+      </div>
+    </aside>
+
+    <header class="topbar">
+      <button class="hamburger-btn" onclick="toggleSidebar()"><i class="fa-solid fa-bars"></i></button>
+      <div>
+        <h1 class="topbar-title">Intern Daily Reports</h1>
+        <div class="topbar-subtitle">Review daily log entries submitted by interns (Sections A–F)</div>
+      </div>
+    </header>
+
+    <main class="main-content">
+      <!-- Search & Date Filter -->
+      <div class="search-filter-bar">
+        <div class="search-box">
+          <i class="fa-solid fa-magnifying-glass search-icon"></i>
+          <input type="text" id="search-input" class="form-control" placeholder="Search by intern name or report content..." oninput="renderReports()">
+        </div>
+        <input type="date" id="date-filter" class="form-control" style="width: auto; min-width: 180px;" onchange="renderReports()">
+      </div>
+
+      <div id="reports-container"></div>
+    </main>
+  </div>
+
+  <script src="../js/db.js"></script>
+  <script src="../js/auth.js"></script>
+  <script src="../js/utils.js"></script>
+  <script>
+    Auth.requireRole('manager');
+    const user = Auth.currentUser();
+
+    document.addEventListener('DOMContentLoaded', () => {
+      document.getElementById('user-name-label').textContent = user.name;
+      document.getElementById('user-avatar-slot').innerHTML = Utils.avatarHtml(user, 36);
+      renderReports();
+    });
+
+    function renderReports() {
+      const q = document.getElementById('search-input').value.trim().toLowerCase();
+      const selectedDate = document.getElementById('date-filter').value;
+      const container = document.getElementById('reports-container');
+
+      let reports = DB.DailyReports.all();
+
+      if (selectedDate) {
+        reports = reports.filter(r => r.date === selectedDate);
+      }
+
+      // Filter by search query
+      reports = reports.filter(r => {
+        const intern = DB.Interns.find(r.internId);
+        const internUser = intern ? DB.Users.find(intern.userId) : null;
+        const nameMatch = internUser && internUser.name.toLowerCase().includes(q);
+        const contentMatch = (r.tasksAssigned + r.activities + r.gained + r.problemsFaced).toLowerCase().includes(q);
+        return !q || nameMatch || contentMatch;
+      });
+
+      reports.sort((a, b) => new Date(b.submittedAt) - new Date(a.submittedAt));
+
+      if (!reports.length) {
+        container.innerHTML = `
+          <div class="empty-state">
+            <div class="empty-state-icon"><i class="fa-solid fa-calendar-xmark"></i></div>
+            <h3>No Reports Found</h3>
+            <p>No daily reports matched your search filters.</p>
+          </div>`;
+        return;
+      }
+
+      container.innerHTML = reports.map(r => {
+        const intern = DB.Interns.find(r.internId);
+        const internUser = intern ? DB.Users.find(intern.userId) : null;
+
+        return `
+          <div class="report-card">
+            <div class="report-card-header" onclick="toggleReportBody('report-${r.id}')">
+              <div style="display: flex; align-items: center; gap: 1rem;">
+                ${Utils.avatarHtml(internUser, 42)}
+                <div>
+                  <div class="report-date"><i class="fa-solid fa-calendar-day" style="color: var(--primary);"></i> Report for ${Utils.formatDate(r.date)}</div>
+                  <div class="report-submitter">Submitted by <strong>${internUser ? Utils.escHtml(internUser.name) : 'Intern'}</strong> • ${Utils.timeAgo(r.submittedAt)}</div>
+                </div>
+              </div>
+              <button class="btn btn-ghost btn-sm"><i class="fa-solid fa-chevron-down"></i> Expand Report</button>
+            </div>
+
+            <div class="report-body" id="report-${r.id}">
+              <div class="report-section">
+                <div class="report-section-label"><span class="section-letter">A</span> Tasks Assigned</div>
+                <div class="report-section-content">${Utils.escHtml(r.tasksAssigned || '—')}</div>
+              </div>
+
+              <div class="report-section">
+                <div class="report-section-label"><span class="section-letter">B</span> Activities</div>
+                <div class="report-section-content">${Utils.escHtml(r.activities || '—')}</div>
+              </div>
+
+              <div class="report-section">
+                <div class="report-section-label"><span class="section-letter">C</span> Responsibilities</div>
+                <div class="report-section-content">${Utils.escHtml(r.responsibilities || '—')}</div>
+              </div>
+
+              <div class="report-section">
+                <div class="report-section-label"><span class="section-letter">D</span> What I Gained</div>
+                <div class="report-section-content">${Utils.escHtml(r.gained || '—')}</div>
+              </div>
+
+              <div class="report-section">
+                <div class="report-section-label"><span class="section-letter">E</span> Improvements / Targets / Suggestions</div>
+                <div class="report-section-content">${Utils.escHtml(r.improvement || '—')}</div>
+              </div>
+
+              <div class="report-section">
+                <div class="report-section-label" style="color: var(--danger);"><span class="section-letter" style="background: var(--danger);">F</span> Problems Faced</div>
+                <div class="report-section-content" style="border-left: 3px solid var(--danger);">${Utils.escHtml(r.problemsFaced || '—')}</div>
+              </div>
+
+              ${r.additionalQuestions ? `
+              <div class="report-section" style="margin-bottom: 0; margin-top: 1rem;">
+                <div class="report-section-label"><span class="section-letter" style="background: var(--primary);">G</span> Additional Questions / Notes</div>
+                <div class="report-section-content">${Utils.escHtml(r.additionalQuestions)}</div>
+              </div>` : ''}
+            </div>
+          </div>`;
+      }).join('');
+    }
+
+    function toggleReportBody(id) {
+      const el = document.getElementById(id);
+      el.classList.toggle('open');
+    }
+
+    function toggleSidebar() {
+      document.getElementById('sidebar').classList.toggle('open');
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Interns Directory — ITPAS Manager</title>
+  <link rel="stylesheet" href="../css/main.css">
+  <link rel="stylesheet" href="../css/components.css">
+  <link rel="stylesheet" href="../css/dark-mode.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+</head>
+<body>
+  <div class="app-shell">
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-brand">
+        <div class="sidebar-brand-icon"><i class="fa-solid fa-graduation-cap"></i></div>
+        <div class="sidebar-brand-text">
+          <div class="brand-name">ITPAS</div>
+          <div class="brand-sub">Manager Portal</div>
+        </div>
+      </div>
+      <div class="sidebar-user">
+        <div id="user-avatar-slot"></div>
+        <div class="sidebar-user-info">
+          <div class="sidebar-user-name" id="user-name-label">Loading...</div>
+          <div class="sidebar-user-role">Manager</div>
+        </div>
+      </div>
+      <nav class="sidebar-nav">
+        <div class="nav-section-label">Main Menu</div>
+        <a href="dashboard.html" class="nav-item"><i class="fa-solid fa-chart-pie nav-icon"></i> Overview</a>
+        <a href="interns.html" class="nav-item active"><i class="fa-solid fa-users nav-icon"></i> Interns</a>
+        <a href="add-intern.html" class="nav-item"><i class="fa-solid fa-user-plus nav-icon"></i> Register Intern</a>
+        <a href="tasks.html" class="nav-item"><i class="fa-solid fa-list-check nav-icon"></i> Task Management</a>
+        <a href="review-queue.html" class="nav-item"><i class="fa-solid fa-clock-rotate-left nav-icon"></i> Review Queue</a>
+        <a href="progress.html" class="nav-item"><i class="fa-solid fa-chart-line nav-icon"></i> Progress Dashboard</a>
+        <a href="reports.html" class="nav-item"><i class="fa-solid fa-file-lines nav-icon"></i> Daily Reports</a>
+        <div class="nav-section-label">Account</div>
+        <a href="profile.html" class="nav-item"><i class="fa-solid fa-user-gear nav-icon"></i> Profile Settings</a>
+      </nav>
+      <div class="sidebar-footer">
+        <a href="#" class="nav-item" onclick="Auth.logout()"><i class="fa-solid fa-right-from-bracket nav-icon"></i> Logout</a>
+      </div>
+    </aside>
+
+    <header class="topbar">
+      <button class="hamburger-btn" onclick="toggleSidebar()"><i class="fa-solid fa-bars"></i></button>
+      <div>
+        <h1 class="topbar-title">Registered Interns</h1>
+        <div class="topbar-subtitle">Manage enrolled interns and monitor their automated progression</div>
+      </div>
+      <div class="topbar-actions">
+        <button class="btn btn-success btn-sm" onclick="Exporter.exportAllInternsExcel()">
+          <i class="fa-solid fa-file-excel"></i> Export Excel
+        </button>
+        <a href="add-intern.html" class="btn btn-primary btn-sm">
+          <i class="fa-solid fa-user-plus"></i> Register Intern
+        </a>
+      </div>
+    </header>
+
+    <main class="main-content">
+      <!-- Search & Filters -->
+      <div class="search-filter-bar">
+        <div class="search-box">
+          <i class="fa-solid fa-magnifying-glass search-icon"></i>
+          <input type="text" id="search-input" class="form-control" placeholder="Search by intern name, email, university or course..." oninput="renderInterns()">
+        </div>
+      </div>
+
+      <!-- Intern Cards Grid -->
+      <div class="content-grid-3" id="interns-grid"></div>
+
+      <div id="pagination-container"></div>
+    </main>
+  </div>
+
+  <script src="../js/db.js"></script>
+  <script src="../js/auth.js"></script>
+  <script src="../js/automation.js"></script>
+  <script src="../js/utils.js"></script>
+  <script src="../js/export.js"></script>
+  <script>
+    Auth.requireRole('manager');
+    const user = Auth.currentUser();
+    let currentPage = 1;
+
+    document.addEventListener('DOMContentLoaded', () => {
+      document.getElementById('user-name-label').textContent = user.name;
+      document.getElementById('user-avatar-slot').innerHTML = Utils.avatarHtml(user, 36);
+      renderInterns();
+    });
+
+    function renderInterns() {
+      const q = document.getElementById('search-input').value.trim();
+      const allInterns = Utils.searchInterns(q);
+      const grid = document.getElementById('interns-grid');
+
+      if (!allInterns.length) {
+        grid.innerHTML = `
+          <div class="empty-state" style="grid-column: 1 / -1;">
+            <div class="empty-state-icon"><i class="fa-solid fa-user-slash"></i></div>
+            <h3>No Interns Found</h3>
+            <p>No intern matches your search query "${Utils.escHtml(q)}".</p>
+          </div>`;
+        document.getElementById('pagination-container').innerHTML = '';
+        return;
+      }
+
+      const paged = Utils.paginate(allInterns, currentPage, 6);
+
+      grid.innerHTML = paged.items.map(intern => {
+        const summary = Automation.getSummary(intern.id);
+        const completionPct = Automation.getCompletionPercentage(intern.id);
+
+        return `
+          <div class="intern-card">
+            <div class="intern-card-top">
+              ${Utils.avatarHtml(intern.user, 50)}
+              <div>
+                <div class="intern-card-name">${Utils.escHtml(intern.user.name)}</div>
+                <div class="intern-card-role"><i class="fa-solid fa-graduation-cap"></i> ${Utils.escHtml(intern.university || 'N/A')}</div>
+                <div class="intern-card-role" style="font-size:0.7rem;"><i class="fa-solid fa-book"></i> ${Utils.escHtml(intern.course || 'N/A')}</div>
+              </div>
+            </div>
+
+            <div class="intern-card-stats">
+              <div>
+                <div class="intern-stat-num" style="color: var(--success);">${summary.completed}</div>
+                <div class="intern-stat-lbl">Completed</div>
+              </div>
+              <div>
+                <div class="intern-stat-num" style="color: var(--warning);">${summary.pending}</div>
+                <div class="intern-stat-lbl">Pending</div>
+              </div>
+              <div>
+                <div class="intern-stat-num">${summary.remaining}</div>
+                <div class="intern-stat-lbl">Remaining</div>
+              </div>
+            </div>
+
+            <div style="margin-bottom: 1rem;">
+              <div style="display: flex; justify-content: space-between; font-size: 0.75rem; font-weight: 600; margin-bottom: 0.25rem;">
+                <span>Progression</span>
+                <span>${completionPct}%</span>
+              </div>
+              <div class="progress-track">
+                <div class="progress-fill" style="width: ${completionPct}%;"></div>
+              </div>
+            </div>
+
+            <div style="display: flex; gap: 0.5rem;">
+              <button onclick="Exporter.exportProgressPDF('${intern.id}')" class="btn btn-ghost btn-sm btn-full" title="Export PDF Progress Report">
+                <i class="fa-solid fa-file-pdf"></i> PDF
+              </button>
+              <a href="progress.html?internId=${intern.id}" class="btn btn-primary btn-sm btn-full">
+                <i class="fa-solid fa-chart-line"></i> View Progress
+              </a>
+            </div>
+          </div>`;
+      }).join('');
+
+      Utils.renderPagination('pagination-container', paged.page, paged.totalPages, (page) => {
+        currentPage = page;
+        renderInterns();
+      });
+    }
+
+    function toggleSidebar() {
+      document.getElementById('sidebar').classList.toggle('open');
+    }
+  </script>
+</body>
+</html>

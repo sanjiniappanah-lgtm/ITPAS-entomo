@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Task Submission — ITPAS Intern</title>
+  <link rel="stylesheet" href="../css/main.css">
+  <link rel="stylesheet" href="../css/components.css">
+  <link rel="stylesheet" href="../css/dark-mode.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+  <div class="app-shell">
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-brand">
+        <div class="sidebar-brand-icon"><i class="fa-solid fa-graduation-cap"></i></div>
+        <div class="sidebar-brand-text">
+          <div class="brand-name">ITPAS</div>
+          <div class="brand-sub">Intern Portal</div>
+        </div>
+      </div>
+      <div class="sidebar-user">
+        <div id="user-avatar-slot"></div>
+        <div class="sidebar-user-info">
+          <div class="sidebar-user-name" id="user-name-label">Loading...</div>
+          <div class="sidebar-user-role">Intern</div>
+        </div>
+      </div>
+      <nav class="sidebar-nav">
+        <div class="nav-section-label">Main Menu</div>
+        <a href="dashboard.html" class="nav-item"><i class="fa-solid fa-house nav-icon"></i> My Dashboard</a>
+        <a href="tasks.html" class="nav-item active"><i class="fa-solid fa-list-check nav-icon"></i> My Tasks</a>
+        <a href="daily-report.html" class="nav-item"><i class="fa-solid fa-pen-to-square nav-icon"></i> Submit Daily Report</a>
+        <a href="reports.html" class="nav-item"><i class="fa-solid fa-clock-rotate-left nav-icon"></i> My Daily Reports</a>
+        <div class="nav-section-label">Account</div>
+        <a href="profile.html" class="nav-item"><i class="fa-solid fa-user nav-icon"></i> My Profile</a>
+      </nav>
+      <div class="sidebar-footer">
+        <a href="#" class="nav-item" onclick="Auth.logout()"><i class="fa-solid fa-right-from-bracket nav-icon"></i> Logout</a>
+      </div>
+    </aside>
+
+    <header class="topbar">
+      <button class="hamburger-btn" onclick="toggleSidebar()"><i class="fa-solid fa-bars"></i></button>
+      <div>
+        <h1 class="topbar-title">Submit Task Work</h1>
+        <div class="topbar-subtitle">Upload your completion files (PDF, DOCX, Image) or type free text</div>
+      </div>
+    </header>
+
+    <main class="main-content">
+      <div style="max-width: 740px; margin: 0 auto;">
+        <!-- Task Overview Card -->
+        <div class="card" style="margin-bottom: 1.5rem;">
+          <div class="task-number" id="sub-task-number">Task 1</div>
+          <div class="task-title" id="sub-task-title" style="font-size: 1.25rem;">Task Title</div>
+          <div class="task-desc" id="sub-task-desc">Task description goes here...</div>
+        </div>
+
+        <!-- Submission Form Card -->
+        <div class="card">
+          <form id="submission-form" onsubmit="handleFormSubmit(event)">
+            <input type="hidden" id="assignment-id">
+
+            <div class="form-group">
+              <label class="form-label">Upload Submission File (PDF, DOCX, Image)</label>
+              <div class="upload-zone" id="drop-zone" onclick="document.getElementById('file-input').click()">
+                <div class="upload-zone-icon"><i class="fa-solid fa-cloud-arrow-up"></i></div>
+                <p>Drag & drop your file here, or <strong>browse files</strong></p>
+                <small>Supported formats: PDF, DOCX, PNG, JPG (Max 10MB)</small>
+              </div>
+              <input type="file" id="file-input" style="display: none;" accept=".pdf,.docx,.doc,.jpg,.jpeg,.png,.gif" onchange="handleFileSelect(this)">
+
+              <div id="file-preview-area"></div>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label" for="free-text">Free Text Submission / Notes</label>
+              <textarea id="free-text" class="form-control" rows="5" placeholder="Enter text response, explanation, or link to your work repository..."></textarea>
+            </div>
+
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 1.5rem;">
+              <a href="tasks.html" class="btn btn-ghost">Cancel</a>
+              <button type="submit" class="btn btn-primary btn-lg">
+                <i class="fa-solid fa-paper-plane"></i> Submit for Review
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script src="../js/db.js"></script>
+  <script src="../js/auth.js"></script>
+  <script src="../js/automation.js"></script>
+  <script src="../js/notifications.js"></script>
+  <script src="../js/utils.js"></script>
+  <script>
+    Auth.requireRole('intern');
+    const user = Auth.currentUser();
+    const intern = DB.Interns.findByUserId(user.id);
+
+    let selectedFileData = null;
+    let selectedFileName = '';
+    let selectedFileType = '';
+
+    document.addEventListener('DOMContentLoaded', () => {
+      document.getElementById('user-name-label').textContent = user.name;
+      document.getElementById('user-avatar-slot').innerHTML = Utils.avatarHtml(user, 36);
+
+      const urlParams = new URLSearchParams(window.location.search);
+      const assignmentId = urlParams.get('assignmentId');
+
+      if (!assignmentId) {
+        window.location.href = 'tasks.html';
+        return;
+      }
+
+      loadAssignment(assignmentId);
+    });
+
+    function loadAssignment(id) {
+      const assignment = DB.Assignments.find(id);
+      if (!assignment) { window.location.href = 'tasks.html'; return; }
+
+      const task = DB.Tasks.findByNumber(assignment.taskNumber);
+      document.getElementById('assignment-id').value = assignment.id;
+      document.getElementById('sub-task-number').textContent = `Task ${assignment.taskNumber}`;
+      document.getElementById('sub-task-title').textContent = task ? task.title : '';
+      document.getElementById('sub-task-desc').textContent = task ? task.description : '';
+    }
+
+    async function handleFileSelect(input) {
+      if (input.files && input.files[0]) {
+        const file = input.files[0];
+        const val = Utils.validateFile(file);
+        if (!val.valid) {
+          Utils.toast(val.message, 'error');
+          input.value = '';
+          return;
+        }
+
+        selectedFileName = file.name;
+        selectedFileType = file.type;
+        selectedFileData = await Utils.fileToBase64(file);
+
+        renderFilePreview();
+      }
+    }
+
+    function renderFilePreview() {
+      const area = document.getElementById('file-preview-area');
+      area.innerHTML = `
+        <div class="file-preview">
+          <div class="file-preview-icon">${Utils.getFileIcon(selectedFileType)}</div>
+          <div class="file-preview-info">
+            <div class="file-preview-name">${Utils.escHtml(selectedFileName)}</div>
+            <div class="file-preview-meta">Ready to submit</div>
+          </div>
+          <button type="button" class="file-preview-remove" onclick="removeSelectedFile()"><i class="fa-solid fa-xmark"></i></button>
+        </div>`;
+    }
+
+    function removeSelectedFile() {
+      selectedFileData = null;
+      selectedFileName = '';
+      selectedFileType = '';
+      document.getElementById('file-input').value = '';
+      document.getElementById('file-preview-area').innerHTML = '';
+    }
+
+    function handleFormSubmit(e) {
+      e.preventDefault();
+      const assignmentId = document.getElementById('assignment-id').value;
+      const freeText = document.getElementById('free-text').value.trim();
+
+      if (!selectedFileData && !freeText) {
+        Utils.toast('Please upload a file or write a free text response.', 'warning');
+        return;
+      }
+
+      const assignment = DB.Assignments.find(assignmentId);
+      if (!assignment) return;
+
+      // Create submission record
+      const sub = DB.Submissions.create({
+        assignmentId: assignment.id,
+        internId: intern.id,
+        taskId: assignment.taskId,
+        taskNumber: assignment.taskNumber,
+        fileData: selectedFileData,
+        fileName: selectedFileName,
+        fileType: selectedFileType,
+        freeText: freeText,
+      });
+
+      // Update assignment status to Pending Review
+      DB.Assignments.update(assignment.id, { status: 'Pending Review' });
+
+      // Automatically unlock next pair (e.g. Task 3 & 4) if both current tasks are submitted!
+      Automation.checkAndUnlockNextPair(intern.id);
+
+      // Trigger notification to managers
+      NotifyEvent.newSubmission(user.name, assignment.taskNumber);
+
+      Utils.toast(`🎉 Task ${assignment.taskNumber} work submitted! Status is now Pending Review.`, 'success', 4000);
+
+      setTimeout(() => {
+        window.location.href = 'tasks.html';
+      }, 1200);
+    }
+
+    function toggleSidebar() {
+      document.getElementById('sidebar').classList.toggle('open');
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Intern Dashboard — ITPAS</title>
+  <link rel="stylesheet" href="../css/main.css">
+  <link rel="stylesheet" href="../css/components.css">
+  <link rel="stylesheet" href="../css/dark-mode.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+  <div class="app-shell">
+    <!-- Sidebar -->
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-brand">
+        <div class="sidebar-brand-icon"><i class="fa-solid fa-graduation-cap"></i></div>
+        <div class="sidebar-brand-text">
+          <div class="brand-name">ITPAS</div>
+          <div class="brand-sub">Intern Portal</div>
+        </div>
+      </div>
+
+      <div class="sidebar-user">
+        <div id="user-avatar-slot"></div>
+        <div class="sidebar-user-info">
+          <div class="sidebar-user-name" id="user-name-label">Loading...</div>
+          <div class="sidebar-user-role">Intern</div>
+        </div>
+      </div>
+
+      <nav class="sidebar-nav">
+        <div class="nav-section-label">Main Menu</div>
+        <a href="dashboard.html" class="nav-item active">
+          <i class="fa-solid fa-house nav-icon"></i> My Dashboard
+        </a>
+        <a href="tasks.html" class="nav-item">
+          <i class="fa-solid fa-list-check nav-icon"></i> My Tasks
+          <span class="nav-badge" id="badge-in-progress">0</span>
+        </a>
+        <a href="daily-report.html" class="nav-item">
+          <i class="fa-solid fa-pen-to-square nav-icon"></i> Submit Daily Report
+        </a>
+        <a href="reports.html" class="nav-item">
+          <i class="fa-solid fa-clock-rotate-left nav-icon"></i> My Daily Reports
+        </a>
+
+        <div class="nav-section-label">Account</div>
+        <a href="profile.html" class="nav-item">
+          <i class="fa-solid fa-user nav-icon"></i> My Profile
+        </a>
+      </nav>
+
+      <div class="sidebar-footer">
+        <a href="#" class="nav-item" onclick="Auth.logout()">
+          <i class="fa-solid fa-right-from-bracket nav-icon"></i> Logout
+        </a>
+      </div>
+    </aside>
+
+    <!-- Topbar -->
+    <header class="topbar">
+      <button class="hamburger-btn" onclick="toggleSidebar()"><i class="fa-solid fa-bars"></i></button>
+      <div>
+        <h1 class="topbar-title" id="welcome-heading">Welcome Back!</h1>
+        <div class="topbar-subtitle">Track your automated internship progress & complete tasks</div>
+      </div>
+      <div class="topbar-actions">
+        <button class="topbar-btn" id="dark-mode-toggle" onclick="Utils.toggleDarkMode()" title="Toggle Dark Mode">🌙</button>
+        <div style="position: relative;">
+          <button class="topbar-btn" onclick="toggleNotifDropdown()" title="Notifications">
+            <i class="fa-solid fa-bell"></i>
+            <span class="notif-badge" id="notif-badge">0</span>
+          </button>
+          <div class="notif-dropdown" id="notif-dropdown">
+            <div class="notif-header">
+              <span>Notifications</span>
+              <button class="btn btn-ghost btn-sm" onclick="DB.Notifications.markAllRead(Auth.getSession().userId); Utils.updateNotificationBadge(); renderNotifs();">Mark all read</button>
+            </div>
+            <div id="notif-list-container"></div>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="main-content">
+      <!-- Unlocked Tasks Banner if applicable -->
+      <div id="unlock-alert-container"></div>
+
+      <!-- Quick Stats Grid -->
+      <div class="stats-grid">
+        <div class="stat-card" style="--card-color: var(--primary);">
+          <div class="stat-icon" style="color: var(--primary);"><i class="fa-solid fa-spinner"></i></div>
+          <div>
+            <div class="stat-value" id="stat-in-progress">0</div>
+            <div class="stat-label">Assigned / In Progress</div>
+          </div>
+        </div>
+
+        <div class="stat-card" style="--card-color: var(--success);">
+          <div class="stat-icon" style="color: var(--success);"><i class="fa-solid fa-circle-check"></i></div>
+          <div>
+            <div class="stat-value" id="stat-completed">0</div>
+            <div class="stat-label">Completed Tasks</div>
+          </div>
+        </div>
+
+        <div class="stat-card" style="--card-color: var(--warning);">
+          <div class="stat-icon" style="color: var(--warning);"><i class="fa-solid fa-clock"></i></div>
+          <div>
+            <div class="stat-value" id="stat-pending">0</div>
+            <div class="stat-label">Pending Review</div>
+          </div>
+        </div>
+
+        <div class="stat-card" style="--card-color: var(--danger);">
+          <div class="stat-icon" style="color: var(--danger);"><i class="fa-solid fa-rotate-left"></i></div>
+          <div>
+            <div class="stat-value" id="stat-remaining">20</div>
+            <div class="stat-label">Remaining Tasks</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Progression Gauge & Active Tasks Grid -->
+      <div class="content-grid">
+        <!-- Active Assigned Tasks -->
+        <div class="card">
+          <div class="card-header">
+            <div>
+              <div class="card-title"><i class="fa-solid fa-list-check" style="color: var(--primary);"></i> Current Active Tasks</div>
+              <div class="card-subtitle">Tasks assigned for your current progression stage</div>
+            </div>
+            <a href="tasks.html" class="btn btn-ghost btn-sm">View All 20 Tasks <i class="fa-solid fa-arrow-right"></i></a>
+          </div>
+          <div id="active-tasks-list"></div>
+        </div>
+
+        <!-- Completion Chart -->
+        <div class="card" style="display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center;">
+          <div class="card-title" style="margin-bottom: 1rem;">Overall Completion Progress</div>
+          <div class="chart-container-sm" style="width: 180px; height: 180px;">
+            <canvas id="completion-gauge"></canvas>
+          </div>
+          <div style="font-size: 0.85rem; color: var(--text-secondary); margin-top: 1rem;" id="completion-subtitle">
+            Complete active tasks to auto-unlock the next pair!
+          </div>
+          <a href="daily-report.html" class="btn btn-primary btn-full" style="margin-top: 1.25rem;">
+            <i class="fa-solid fa-pen"></i> Log Today's Daily Report
+          </a>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script src="../js/db.js"></script>
+  <script src="../js/auth.js"></script>
+  <script src="../js/automation.js"></script>
+  <script src="../js/utils.js"></script>
+  <script src="../js/charts.js"></script>
+  <script>
+    Auth.requireRole('intern');
+    const user = Auth.currentUser();
+    const intern = DB.Interns.findByUserId(user.id);
+
+    document.addEventListener('DOMContentLoaded', () => {
+      document.getElementById('user-name-label').textContent = user.name;
+      document.getElementById('user-avatar-slot').innerHTML = Utils.avatarHtml(user, 36);
+      document.getElementById('welcome-heading').textContent = `Welcome back, ${user.name.split(' ')[0]}! 👋`;
+
+      if (intern) {
+        loadInternDashboard();
+      }
+      Utils.updateNotificationBadge();
+    });
+
+    function loadInternDashboard() {
+      const summary = Automation.getSummary(intern.id);
+      const completionPct = Automation.getCompletionPercentage(intern.id);
+
+      document.getElementById('stat-in-progress').textContent = summary.inProgress;
+      document.getElementById('stat-completed').textContent = summary.completed;
+      document.getElementById('stat-pending').textContent = summary.pending;
+      document.getElementById('stat-remaining').textContent = summary.remaining;
+      document.getElementById('badge-in-progress').textContent = summary.inProgress;
+
+      Charts.renderCompletionGauge('completion-gauge', completionPct);
+
+      renderActiveTasks();
+    }
+
+    function renderActiveTasks() {
+      const assignments = DB.Assignments.forIntern(intern.id);
+      const activeAssignments = assignments.filter(a => ['In Progress', 'Pending Review', 'Request Revision'].includes(a.status));
+      const container = document.getElementById('active-tasks-list');
+
+      if (!activeAssignments.length) {
+        container.innerHTML = `
+          <div class="empty-state" style="padding: 2rem 1rem;">
+            <div class="empty-state-icon"><i class="fa-solid fa-circle-check" style="color: var(--success);"></i></div>
+            <h3>All Tasks Completed!</h3>
+            <p>Congratulations! You have completed all 20 assigned tasks in your internship progression path.</p>
+          </div>`;
+        return;
+      }
+
+      container.innerHTML = activeAssignments.map(a => {
+        const task = DB.Tasks.findByNumber(a.taskNumber);
+        const sub = DB.Submissions.latestForAssignment(a.id);
+        const fb = sub ? DB.Feedback.latestForSubmission(sub.id) : null;
+
+        let statusClass = 'in-progress';
+        if (a.status === 'Pending Review') statusClass = 'pending';
+        if (a.status === 'Request Revision') statusClass = 'revision';
+
+        return `
+          <div class="task-card ${statusClass}">
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 0.5rem;">
+              <div>
+                <div class="task-number">Task ${a.taskNumber}</div>
+                <div class="task-title">${task ? Utils.escHtml(task.title) : ''}</div>
+                <div class="task-desc">${task ? Utils.escHtml(task.description) : ''}</div>
+              </div>
+              <div>${Utils.statusBadge(a.status)}</div>
+            </div>
+
+            ${fb ? `
+              <div class="feedback-box">
+                <div class="feedback-label"><i class="fa-solid fa-comment"></i> Manager Feedback</div>
+                <div class="feedback-text">${Utils.escHtml(fb.comments)}</div>
+              </div>` : ''}
+
+            <div style="display: flex; justify-content: flex-end; margin-top: 1rem;">
+              <a href="submit.html?assignmentId=${a.id}" class="btn ${a.status === 'Request Revision' ? 'btn-warning' : 'btn-primary'} btn-sm">
+                <i class="fa-solid fa-upload"></i> ${sub ? 'Resubmit File' : 'Upload Submission'}
+              </a>
+            </div>
+          </div>`;
+      }).join('');
+    }
+
+    function toggleSidebar() {
+      document.getElementById('sidebar').classList.toggle('open');
+    }
+
+    function toggleNotifDropdown() {
+      const dropdown = document.getElementById('notif-dropdown');
+      dropdown.classList.toggle('open');
+      if (dropdown.classList.contains('open')) {
+        Utils.renderNotificationDropdown('notif-list-container');
+      }
+    }
+  </script>
+</body>
+</html>

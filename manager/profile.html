@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Manager Profile Settings — ITPAS</title>
+  <link rel="stylesheet" href="../css/main.css">
+  <link rel="stylesheet" href="../css/components.css">
+  <link rel="stylesheet" href="../css/dark-mode.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+  <div class="app-shell">
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-brand">
+        <div class="sidebar-brand-icon"><i class="fa-solid fa-graduation-cap"></i></div>
+        <div class="sidebar-brand-text">
+          <div class="brand-name">ITPAS</div>
+          <div class="brand-sub">Manager Portal</div>
+        </div>
+      </div>
+      <div class="sidebar-user">
+        <div id="user-avatar-slot"></div>
+        <div class="sidebar-user-info">
+          <div class="sidebar-user-name" id="user-name-label">Loading...</div>
+          <div class="sidebar-user-role">Manager</div>
+        </div>
+      </div>
+      <nav class="sidebar-nav">
+        <div class="nav-section-label">Main Menu</div>
+        <a href="dashboard.html" class="nav-item"><i class="fa-solid fa-chart-pie nav-icon"></i> Overview</a>
+        <a href="interns.html" class="nav-item"><i class="fa-solid fa-users nav-icon"></i> Interns</a>
+        <a href="add-intern.html" class="nav-item"><i class="fa-solid fa-user-plus nav-icon"></i> Register Intern</a>
+        <a href="tasks.html" class="nav-item"><i class="fa-solid fa-list-check nav-icon"></i> Task Management</a>
+        <a href="review-queue.html" class="nav-item"><i class="fa-solid fa-clock-rotate-left nav-icon"></i> Review Queue</a>
+        <a href="progress.html" class="nav-item"><i class="fa-solid fa-chart-line nav-icon"></i> Progress Dashboard</a>
+        <a href="reports.html" class="nav-item"><i class="fa-solid fa-file-lines nav-icon"></i> Daily Reports</a>
+        <div class="nav-section-label">Account</div>
+        <a href="profile.html" class="nav-item active"><i class="fa-solid fa-user-gear nav-icon"></i> Profile Settings</a>
+      </nav>
+      <div class="sidebar-footer">
+        <a href="#" class="nav-item" onclick="Auth.logout()"><i class="fa-solid fa-right-from-bracket nav-icon"></i> Logout</a>
+      </div>
+    </aside>
+
+    <header class="topbar">
+      <button class="hamburger-btn" onclick="toggleSidebar()"><i class="fa-solid fa-bars"></i></button>
+      <div>
+        <h1 class="topbar-title">Manager Profile & Settings</h1>
+        <div class="topbar-subtitle">Update account details, security credentials, and preferences</div>
+      </div>
+    </header>
+
+    <main class="main-content">
+      <div style="max-width: 800px; margin: 0 auto;">
+        <!-- Header Banner -->
+        <div class="profile-header">
+          <div class="profile-avatar-wrap">
+            <div id="profile-avatar-large"></div>
+          </div>
+          <div class="profile-info">
+            <div class="profile-name" id="header-profile-name">Manager</div>
+            <div class="profile-email" id="header-profile-email">nantha.k@entomo.co</div>
+            <div class="profile-badges">
+              <span class="profile-badge"><i class="fa-solid fa-user-shield"></i> System Manager</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="card" style="margin-bottom: 1.5rem;">
+          <h3 style="font-size: 1.1rem; font-weight: 700; color: var(--text-primary); margin-bottom: 1.25rem;">
+            <i class="fa-solid fa-user-pen" style="color: var(--primary);"></i> Personal Details
+          </h3>
+          <form id="profile-form" onsubmit="saveProfile(event)">
+            <div class="form-row">
+              <div class="form-group">
+                <label class="form-label" for="profile-name">Full Name <span>*</span></label>
+                <input type="text" id="profile-name" class="form-control" required>
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="profile-email">Email Address <span>*</span></label>
+                <input type="email" id="profile-email" class="form-control" required>
+              </div>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label class="form-label" for="profile-phone">Phone Number</label>
+                <input type="tel" id="profile-phone" class="form-control">
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="profile-photo">Profile Photo</label>
+                <input type="file" id="profile-photo" class="form-control" accept="image/*" onchange="updatePhotoPreview(this)">
+              </div>
+            </div>
+
+            <div style="display: flex; justify-content: flex-end;">
+              <button type="submit" class="btn btn-primary"><i class="fa-solid fa-floppy-disk"></i> Save Profile Details</button>
+            </div>
+          </form>
+        </div>
+
+        <!-- Security / Password Card -->
+        <div class="card">
+          <h3 style="font-size: 1.1rem; font-weight: 700; color: var(--text-primary); margin-bottom: 1.25rem;">
+            <i class="fa-solid fa-key" style="color: var(--warning);"></i> Security & Password
+          </h3>
+          <form id="security-form" onsubmit="changePassword(event)">
+            <div class="form-group">
+              <label class="form-label" for="new-password">New Password <span>*</span></label>
+              <input type="password" id="new-password" class="form-control" placeholder="••••••••" required minlength="6">
+            </div>
+
+            <div class="form-group">
+              <label class="form-label" for="confirm-password">Confirm New Password <span>*</span></label>
+              <input type="password" id="confirm-password" class="form-control" placeholder="••••••••" required minlength="6">
+            </div>
+
+            <div style="display: flex; justify-content: flex-end;">
+              <button type="submit" class="btn btn-warning"><i class="fa-solid fa-lock"></i> Update Password</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script src="../js/db.js"></script>
+  <script src="../js/auth.js"></script>
+  <script src="../js/utils.js"></script>
+  <script>
+    Auth.requireRole('manager');
+    let currentUser = Auth.currentUser();
+    let newPhotoBase64 = currentUser.photo || '';
+
+    document.addEventListener('DOMContentLoaded', () => {
+      loadProfileData();
+    });
+
+    function loadProfileData() {
+      currentUser = Auth.currentUser();
+      document.getElementById('user-name-label').textContent = currentUser.name;
+      document.getElementById('user-avatar-slot').innerHTML = Utils.avatarHtml(currentUser, 36);
+
+      document.getElementById('profile-avatar-large').innerHTML = Utils.avatarHtml(currentUser, 90);
+      document.getElementById('header-profile-name').textContent = currentUser.name;
+      document.getElementById('header-profile-email').textContent = currentUser.email;
+
+      document.getElementById('profile-name').value = currentUser.name;
+      document.getElementById('profile-email').value = currentUser.email;
+      document.getElementById('profile-phone').value = currentUser.phone || '';
+    }
+
+    async function updatePhotoPreview(input) {
+      if (input.files && input.files[0]) {
+        newPhotoBase64 = await Utils.fileToBase64(input.files[0]);
+        document.getElementById('profile-avatar-large').innerHTML = `<img src="${newPhotoBase64}" style="width:90px;height:90px;border-radius:50%;object-fit:cover;">`;
+      }
+    }
+
+    function saveProfile(e) {
+      e.preventDefault();
+      const name = document.getElementById('profile-name').value.trim();
+      const email = document.getElementById('profile-email').value.trim();
+      const phone = document.getElementById('profile-phone').value.trim();
+
+      DB.Users.update(currentUser.id, { name, email, phone, photo: newPhotoBase64 });
+      Utils.toast('Profile information updated successfully!', 'success');
+      loadProfileData();
+    }
+
+    function changePassword(e) {
+      e.preventDefault();
+      const newPass = document.getElementById('new-password').value;
+      const confPass = document.getElementById('confirm-password').value;
+
+      if (newPass !== confPass) {
+        Utils.toast('New password and confirmation do not match.', 'error');
+        return;
+      }
+
+      DB.Users.update(currentUser.id, { password: newPass });
+      Utils.toast('Password updated successfully!', 'success');
+      document.getElementById('security-form').reset();
+    }
+
+    function toggleSidebar() {
+      document.getElementById('sidebar').classList.toggle('open');
+    }
+  </script>
+</body>
+</html>

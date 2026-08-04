@@ -1,0 +1,83 @@
+/* ═══════════════════════════════════════════════════════════════════════════
+   ITPAS — Dark Mode Overrides
+   Applied when <body> has class 'dark-mode'
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+body.dark-mode {
+  --bg-base:        #0a0d1a;
+  --bg-surface:     #111827;
+  --bg-surface-2:   #1a2035;
+  --bg-glass:       rgba(17,24,39,0.85);
+  --bg-sidebar:     #070b14;
+
+  --text-primary:   #e2e8f0;
+  --text-secondary: #94a3b8;
+  --text-muted:     #64748b;
+
+  --border:         rgba(99,102,241,0.2);
+  --border-light:   rgba(51,65,85,0.8);
+
+  --shadow-sm: 0 1px 3px rgba(0,0,0,0.3);
+  --shadow-md: 0 4px 16px rgba(0,0,0,0.4);
+  --shadow-lg: 0 20px 60px rgba(0,0,0,0.5);
+
+  --success-light: rgba(16,185,129,0.12);
+  --warning-light: rgba(245,158,11,0.12);
+  --danger-light:  rgba(244,63,94,0.12);
+  --primary-glow:  rgba(99,102,241,0.18);
+}
+
+body.dark-mode .login-right { background: #111827; }
+body.dark-mode .form-control { background: #1a2035; border-color: #334155; color: #e2e8f0; }
+body.dark-mode .form-control:focus { border-color: var(--primary); }
+body.dark-mode .form-control::placeholder { color: #475569; }
+
+body.dark-mode .stat-card,
+body.dark-mode .card,
+body.dark-mode .intern-card,
+body.dark-mode .task-card,
+body.dark-mode .feedback-box,
+body.dark-mode .modal-box,
+body.dark-mode .notif-dropdown { background: #111827; border-color: #1e293b; }
+
+body.dark-mode thead th { background: #0f172a; }
+body.dark-mode tbody tr:hover { background: #1a2035; }
+
+body.dark-mode .tabs { background: #0f172a; border-color: #1e293b; }
+body.dark-mode .tab-btn.active { background: #111827; }
+
+body.dark-mode .upload-zone { background: #1a2035; border-color: #334155; }
+body.dark-mode .upload-zone:hover { background: rgba(99,102,241,0.1); }
+
+body.dark-mode .progress-track { background: #1e293b; }
+
+body.dark-mode .notif-item:hover { background: #1a2035; }
+body.dark-mode .notif-item.unread { background: rgba(99,102,241,0.06); }
+
+body.dark-mode .badge-not-available { background: rgba(51,65,85,0.5); }
+body.dark-mode .badge-completed { color: #34d399; }
+body.dark-mode .badge-in-progress { color: #fbbf24; }
+body.dark-mode .badge-pending { color: #818cf8; }
+body.dark-mode .badge-revision { color: #fb7185; }
+
+body.dark-mode .topbar { background: #111827; border-color: #1e293b; }
+body.dark-mode .topbar-btn { background: #1a2035; }
+
+body.dark-mode .alert-success { background: rgba(16,185,129,0.1); }
+body.dark-mode .alert-warning { background: rgba(245,158,11,0.1); }
+body.dark-mode .alert-danger  { background: rgba(244,63,94,0.1); }
+body.dark-mode .alert-info    { background: rgba(14,165,233,0.1); }
+
+body.dark-mode .btn-ghost { border-color: #334155; color: #94a3b8; }
+body.dark-mode .btn-ghost:hover { background: #1a2035; color: var(--primary-light); }
+
+/* Dark sidebar is already dark, but deepen it */
+body.dark-mode .sidebar { background: #060912; }
+body.dark-mode .sidebar-user { background: rgba(255,255,255,0.03); }
+
+/* Dark mode transition for smooth toggle */
+body, body * {
+  transition: background-color 0.25s ease, border-color 0.25s ease, color 0.25s ease;
+}
+/* Don't animate SVGs, icons, pseudo-elements */
+body::before, body::after, body *.nav-item::before { transition: none; }

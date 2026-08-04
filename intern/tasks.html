@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>My Tasks Path — ITPAS Intern</title>
+  <link rel="stylesheet" href="../css/main.css">
+  <link rel="stylesheet" href="../css/components.css">
+  <link rel="stylesheet" href="../css/dark-mode.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+  <div class="app-shell">
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-brand">
+        <div class="sidebar-brand-icon"><i class="fa-solid fa-graduation-cap"></i></div>
+        <div class="sidebar-brand-text">
+          <div class="brand-name">ITPAS</div>
+          <div class="brand-sub">Intern Portal</div>
+        </div>
+      </div>
+      <div class="sidebar-user">
+        <div id="user-avatar-slot"></div>
+        <div class="sidebar-user-info">
+          <div class="sidebar-user-name" id="user-name-label">Loading...</div>
+          <div class="sidebar-user-role">Intern</div>
+        </div>
+      </div>
+      <nav class="sidebar-nav">
+        <div class="nav-section-label">Main Menu</div>
+        <a href="dashboard.html" class="nav-item"><i class="fa-solid fa-house nav-icon"></i> My Dashboard</a>
+        <a href="tasks.html" class="nav-item active"><i class="fa-solid fa-list-check nav-icon"></i> My Tasks</a>
+        <a href="daily-report.html" class="nav-item"><i class="fa-solid fa-pen-to-square nav-icon"></i> Submit Daily Report</a>
+        <a href="reports.html" class="nav-item"><i class="fa-solid fa-clock-rotate-left nav-icon"></i> My Daily Reports</a>
+        <div class="nav-section-label">Account</div>
+        <a href="profile.html" class="nav-item"><i class="fa-solid fa-user nav-icon"></i> My Profile</a>
+      </nav>
+      <div class="sidebar-footer">
+        <a href="#" class="nav-item" onclick="Auth.logout()"><i class="fa-solid fa-right-from-bracket nav-icon"></i> Logout</a>
+      </div>
+    </aside>
+
+    <header class="topbar">
+      <button class="hamburger-btn" onclick="toggleSidebar()"><i class="fa-solid fa-bars"></i></button>
+      <div>
+        <h1 class="topbar-title">Internship Task Path</h1>
+        <div class="topbar-subtitle">Automated task progression: Complete current pair to unlock next pair</div>
+      </div>
+    </header>
+
+    <main class="main-content">
+      <div class="alert-banner alert-info">
+        <i class="fa-solid fa-bolt"></i>
+        <span><strong>Automated Progression Logic:</strong> When both tasks in your active pair are submitted, the next pair unlocks automatically!</span>
+      </div>
+
+      <!-- Filter tabs -->
+      <div class="tabs">
+        <button type="button" class="tab-btn active" id="tab-all" onclick="filterTasks('all', this)">All Tasks</button>
+        <button type="button" class="tab-btn" onclick="filterTasks('In Progress', this)">In Progress</button>
+        <button type="button" class="tab-btn" onclick="filterTasks('Pending Review', this)">Pending Review</button>
+        <button type="button" class="tab-btn" onclick="filterTasks('Completed', this)">Completed</button>
+        <button type="button" class="tab-btn" onclick="filterTasks('Request Revision', this)">Request Revision</button>
+        <button type="button" class="tab-btn" onclick="filterTasks('Not Available', this)">Locked Tasks</button>
+      </div>
+
+      <div id="all-tasks-grid" style="display: flex; flex-direction: column; gap: 1rem;"></div>
+    </main>
+  </div>
+
+  <script src="../js/db.js"></script>
+  <script src="../js/auth.js"></script>
+  <script src="../js/automation.js"></script>
+  <script src="../js/utils.js"></script>
+  <script>
+    Auth.requireRole('intern');
+    const user = Auth.currentUser();
+    const intern = DB.Interns.findByUserId(user.id);
+    let activeFilter = 'all';
+
+    document.addEventListener('DOMContentLoaded', () => {
+      document.getElementById('user-name-label').textContent = user.name;
+      document.getElementById('user-avatar-slot').innerHTML = Utils.avatarHtml(user, 36);
+
+      if (intern) {
+        renderTasksPath();
+      }
+    });
+
+    function filterTasks(status, btn) {
+      activeFilter = status;
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      renderTasksPath();
+    }
+
+    function renderTasksPath() {
+      const allTasks = DB.Tasks.all().sort((a, b) => a.taskNumber - b.taskNumber);
+      const assignments = DB.Assignments.forIntern(intern.id);
+      const container = document.getElementById('all-tasks-grid');
+
+      // Update the All Tasks tab count dynamically
+      const tabAll = document.getElementById('tab-all');
+      if (tabAll) tabAll.textContent = `All Tasks (${allTasks.length})`;
+
+      let taskItems = allTasks.map(task => {
+        const assignment = assignments.find(a => a.taskId === task.id || a.taskNumber === task.taskNumber);
+        const status = assignment ? assignment.status : 'Not Available';
+        const sub = assignment ? DB.Submissions.latestForAssignment(assignment.id) : null;
+        const fb = sub ? DB.Feedback.latestForSubmission(sub.id) : null;
+
+        return { task, assignment, status, sub, fb };
+      });
+
+      if (activeFilter !== 'all') {
+        taskItems = taskItems.filter(item => item.status === activeFilter);
+      }
+
+      if (!taskItems.length) {
+        container.innerHTML = `
+          <div class="empty-state">
+            <div class="empty-state-icon"><i class="fa-solid fa-list-check"></i></div>
+            <h3>No Tasks Found</h3>
+            <p>No tasks match the selected status filter "${activeFilter}".</p>
+          </div>`;
+        return;
+      }
+
+      container.innerHTML = taskItems.map(item => {
+        const { task, assignment, status, sub, fb } = item;
+        const isLocked = status === 'Not Available';
+        const isSubmittable = !isLocked && status !== 'Completed';
+        const submitUrl = assignment ? `submit.html?assignmentId=${assignment.id}` : '#';
+
+        let cardClass = 'not-available';
+        if (status === 'In Progress') cardClass = 'in-progress';
+        if (status === 'Pending Review') cardClass = 'pending';
+        if (status === 'Completed') cardClass = 'completed';
+        if (status === 'Request Revision') cardClass = 'revision';
+
+        // Clickable card navigates to submit page (only if not locked/completed)
+        const clickHandler = isSubmittable
+          ? `onclick="window.location.href='${submitUrl}'" style="cursor: pointer;"`
+          : (isLocked ? `style="cursor: not-allowed; opacity: 0.7;"` : '');
+
+        return `
+          <div class="card task-card ${cardClass}" ${clickHandler} style="margin-bottom: 0; ${isSubmittable ? 'cursor:pointer;' : ''}">
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 0.5rem;">
+              <div>
+                <div style="display: flex; align-items: center; gap: 0.5rem;">
+                  <span class="task-number">Task ${task.taskNumber}</span>
+                  ${isLocked ? '<i class="fa-solid fa-lock" style="color: var(--text-muted); font-size: 0.8rem;"></i>' : ''}
+                  ${isSubmittable ? '<i class="fa-solid fa-arrow-up-right-from-square" style="color: var(--primary); font-size: 0.75rem;" title="Click to submit"></i>' : ''}
+                </div>
+                <div class="task-title" style="font-size: 1.05rem;">${Utils.escHtml(task.title)}</div>
+                <div class="task-desc">${Utils.escHtml(task.description)}</div>
+              </div>
+              <div>${Utils.statusBadge(status)}</div>
+            </div>
+
+            ${fb ? `
+              <div class="feedback-box">
+                <div class="feedback-label"><i class="fa-solid fa-comment-dots"></i> Manager Feedback (${Utils.formatDate(fb.reviewedAt)})</div>
+                <div class="feedback-text">${Utils.escHtml(fb.comments)}</div>
+              </div>` : ''}
+
+            ${isSubmittable ? `
+              <div style="display: flex; justify-content: flex-end; margin-top: 1rem;">
+                <a href="${submitUrl}" class="btn ${status === 'Request Revision' ? 'btn-warning' : 'btn-primary'} btn-sm" onclick="event.stopPropagation()">
+                  <i class="fa-solid fa-upload"></i> ${sub ? 'Resubmit Task Work' : 'Upload Submission'}
+                </a>
+              </div>` : ''}
+
+            ${status === 'Completed' ? `
+              <div style="display: flex; justify-content: flex-end; margin-top: 1rem;">
+                <span class="status-badge badge-completed" style="font-size:0.8rem;"><i class="fa-solid fa-circle-check"></i> Completed & Unlocked</span>
+              </div>` : ''}
+          </div>`;
+      }).join('');
+    }
+
+    function toggleSidebar() {
+      document.getElementById('sidebar').classList.toggle('open');
+    }
+  </script>
+</body>
+</html>

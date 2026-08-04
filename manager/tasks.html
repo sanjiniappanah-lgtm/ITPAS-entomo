@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Task Configuration — ITPAS Manager</title>
+  <link rel="stylesheet" href="../css/main.css">
+  <link rel="stylesheet" href="../css/components.css">
+  <link rel="stylesheet" href="../css/dark-mode.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+  <div class="app-shell">
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-brand">
+        <div class="sidebar-brand-icon"><i class="fa-solid fa-graduation-cap"></i></div>
+        <div class="sidebar-brand-text">
+          <div class="brand-name">ITPAS</div>
+          <div class="brand-sub">Manager Portal</div>
+        </div>
+      </div>
+      <div class="sidebar-user">
+        <div id="user-avatar-slot"></div>
+        <div class="sidebar-user-info">
+          <div class="sidebar-user-name" id="user-name-label">Loading...</div>
+          <div class="sidebar-user-role">Manager</div>
+        </div>
+      </div>
+      <nav class="sidebar-nav">
+        <div class="nav-section-label">Main Menu</div>
+        <a href="dashboard.html" class="nav-item"><i class="fa-solid fa-chart-pie nav-icon"></i> Overview</a>
+        <a href="interns.html" class="nav-item"><i class="fa-solid fa-users nav-icon"></i> Interns</a>
+        <a href="add-intern.html" class="nav-item"><i class="fa-solid fa-user-plus nav-icon"></i> Register Intern</a>
+        <a href="tasks.html" class="nav-item active"><i class="fa-solid fa-list-check nav-icon"></i> Task Management</a>
+        <a href="review-queue.html" class="nav-item"><i class="fa-solid fa-clock-rotate-left nav-icon"></i> Review Queue</a>
+        <a href="progress.html" class="nav-item"><i class="fa-solid fa-chart-line nav-icon"></i> Progress Dashboard</a>
+        <a href="reports.html" class="nav-item"><i class="fa-solid fa-file-lines nav-icon"></i> Daily Reports</a>
+        <div class="nav-section-label">Account</div>
+        <a href="profile.html" class="nav-item"><i class="fa-solid fa-user-gear nav-icon"></i> Profile Settings</a>
+      </nav>
+      <div class="sidebar-footer">
+        <a href="#" class="nav-item" onclick="Auth.logout()"><i class="fa-solid fa-right-from-bracket nav-icon"></i> Logout</a>
+      </div>
+    </aside>
+
+    <header class="topbar">
+      <button class="hamburger-btn" onclick="toggleSidebar()"><i class="fa-solid fa-bars"></i></button>
+      <div>
+        <h1 class="topbar-title">Task Learning Path Configuration</h1>
+        <div class="topbar-subtitle">Configure Tasks 1 through 20 for automated progression</div>
+      </div>
+      <div class="topbar-actions">
+        <button class="btn btn-primary btn-sm" onclick="openAddTaskModal()">
+          <i class="fa-solid fa-plus"></i> Add New Task
+        </button>
+      </div>
+    </header>
+
+    <main class="main-content">
+      <div class="alert-banner alert-info">
+        <i class="fa-solid fa-circle-info"></i>
+        <span>Tasks are paired automatically: <strong>Task 1 & 2</strong> → <strong>Task 3 & 4</strong> → ... → <strong>Task 19 & 20</strong>. Editing titles or descriptions will update what interns see on their dashboard.</span>
+      </div>
+
+      <div class="card">
+        <div class="table-wrapper">
+          <table>
+            <thead>
+              <tr>
+                <th style="width: 50px;">#</th>
+                <th style="width: 80px;">Task</th>
+                <th>Title</th>
+                <th>Description</th>
+                <th>Due Date</th>
+                <th style="width: 120px; text-align: right;">Actions</th>
+              </tr>
+            </thead>
+            <tbody id="tasks-table-body"></tbody>
+          </table>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <!-- Task Modal (Add/Edit) -->
+  <div class="modal-overlay" id="task-modal">
+    <div class="modal-box">
+      <div class="modal-header">
+        <div class="modal-title" id="modal-task-title">Edit Task</div>
+        <button class="modal-close" onclick="closeTaskModal()">&times;</button>
+      </div>
+      <form id="task-form" onsubmit="saveTask(event)">
+        <div class="modal-body">
+          <input type="hidden" id="task-id">
+
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label" for="task-number">Task Number <span>*</span></label>
+              <input type="number" id="task-number" class="form-control" min="1" required>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label" for="task-due-date">Default Due Date (Optional)</label>
+              <input type="date" id="task-due-date" class="form-control">
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="task-name">Task Title <span>*</span></label>
+            <input type="text" id="task-name" class="form-control" placeholder="e.g. Environment Setup & Tooling" required>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="task-description">Task Description <span>*</span></label>
+            <textarea id="task-description" class="form-control" rows="4" placeholder="Detailed instructions for the intern..." required></textarea>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-ghost" onclick="closeTaskModal()">Cancel</button>
+          <button type="submit" class="btn btn-primary"><i class="fa-solid fa-save"></i> Save Task</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script src="../js/db.js"></script>
+  <script src="../js/auth.js"></script>
+  <script src="../js/utils.js"></script>
+  <script>
+    Auth.requireRole('manager');
+    const user = Auth.currentUser();
+
+    document.addEventListener('DOMContentLoaded', () => {
+      document.getElementById('user-name-label').textContent = user.name;
+      document.getElementById('user-avatar-slot').innerHTML = Utils.avatarHtml(user, 36);
+      renderTasks();
+    });
+
+    let draggedRowId = null;
+
+    function renderTasks() {
+      const tasks = DB.Tasks.all();
+      const tbody = document.getElementById('tasks-table-body');
+
+      tbody.innerHTML = tasks.map(t => `
+        <tr draggable="true" data-id="${t.id}" ondragstart="handleDragStart(event)" ondragover="handleDragOver(event)" ondragleave="handleDragLeave(event)" ondrop="handleDrop(event)" ondragend="handleDragEnd(event)">
+          <td style="cursor: grab;"><span class="drag-handle" title="Drag to reorder task"><i class="fa-solid fa-grip-vertical"></i></span></td>
+          <td><strong>Task ${t.taskNumber}</strong></td>
+          <td><span style="font-weight: 600; color: var(--text-primary);">${Utils.escHtml(t.title)}</span></td>
+          <td style="max-width: 320px;"><span style="font-size:0.82rem; color: var(--text-secondary); display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">${Utils.escHtml(t.description)}</span></td>
+          <td>${t.dueDate ? Utils.formatDate(t.dueDate) : '<span class="text-muted">—</span>'}</td>
+          <td style="text-align: right;">
+            <button onclick="openEditTaskModal('${t.id}')" class="btn btn-ghost btn-sm btn-icon" title="Edit Task"><i class="fa-solid fa-pen-to-square"></i></button>
+            <button onclick="deleteTask('${t.id}')" class="btn btn-ghost btn-sm btn-icon" style="color: var(--danger);" title="Delete Task"><i class="fa-solid fa-trash"></i></button>
+          </td>
+        </tr>
+      `).join('');
+    }
+
+    function handleDragStart(e) {
+      draggedRowId = e.currentTarget.getAttribute('data-id');
+      e.currentTarget.classList.add('dragging');
+      e.dataTransfer.effectAllowed = 'move';
+      e.dataTransfer.setData('text/plain', draggedRowId);
+    }
+
+    function handleDragOver(e) {
+      e.preventDefault();
+      e.dataTransfer.dropEffect = 'move';
+      e.currentTarget.style.borderTop = '2px solid var(--primary)';
+    }
+
+    function handleDragLeave(e) {
+      e.currentTarget.style.borderTop = '';
+    }
+
+    function handleDragEnd(e) {
+      e.currentTarget.classList.remove('dragging');
+      document.querySelectorAll('#tasks-table-body tr').forEach(tr => tr.style.borderTop = '');
+    }
+
+    function handleDrop(e) {
+      e.preventDefault();
+      const targetRow = e.currentTarget;
+      targetRow.style.borderTop = '';
+      const targetId = targetRow.getAttribute('data-id');
+      
+      if (!draggedRowId || draggedRowId === targetId) return;
+
+      const tasks = DB.Tasks.all();
+      const draggedIndex = tasks.findIndex(t => t.id === draggedRowId);
+      const targetIndex = tasks.findIndex(t => t.id === targetId);
+
+      if (draggedIndex === -1 || targetIndex === -1) return;
+
+      const [draggedTask] = tasks.splice(draggedIndex, 1);
+      tasks.splice(targetIndex, 0, draggedTask);
+
+      const orderedIds = [];
+      tasks.forEach((task, idx) => {
+        orderedIds.push(task.id);
+        DB.Tasks.update(task.id, { order: idx + 1, taskNumber: idx + 1 });
+      });
+
+      DB.Tasks.reorder(orderedIds);
+      Utils.toast('Tasks reordered successfully!', 'success');
+      renderTasks();
+    }
+
+    function openAddTaskModal() {
+      document.getElementById('modal-task-title').textContent = 'Add New Task';
+      document.getElementById('task-id').value = '';
+      document.getElementById('task-number').value = DB.Tasks.all().length + 1;
+      document.getElementById('task-name').value = '';
+      document.getElementById('task-description').value = '';
+      document.getElementById('task-due-date').value = '';
+      document.getElementById('task-modal').classList.add('open');
+    }
+
+    function openEditTaskModal(id) {
+      const task = DB.Tasks.find(id);
+      if (!task) return;
+
+      document.getElementById('modal-task-title').textContent = `Edit Task ${task.taskNumber}`;
+      document.getElementById('task-id').value = task.id;
+      document.getElementById('task-number').value = task.taskNumber;
+      document.getElementById('task-name').value = task.title;
+      document.getElementById('task-description').value = task.description;
+      document.getElementById('task-due-date').value = task.dueDate || '';
+      document.getElementById('task-modal').classList.add('open');
+    }
+
+    function closeTaskModal() {
+      document.getElementById('task-modal').classList.remove('open');
+    }
+
+    function saveTask(e) {
+      e.preventDefault();
+      const id = document.getElementById('task-id').value;
+      const num = parseInt(document.getElementById('task-number').value);
+      const title = document.getElementById('task-name').value.trim();
+      const description = document.getElementById('task-description').value.trim();
+      const dueDate = document.getElementById('task-due-date').value;
+
+      if (id) {
+        DB.Tasks.update(id, { taskNumber: num, title, description, dueDate });
+        Utils.toast(`Task ${num} updated successfully!`, 'success');
+      } else {
+        DB.Tasks.create({ taskNumber: num, title, description, dueDate, order: num });
+        Utils.toast(`Task ${num} created!`, 'success');
+      }
+
+      closeTaskModal();
+      renderTasks();
+    }
+
+    function deleteTask(id) {
+      const task = DB.Tasks.find(id);
+      if (!task) return;
+      if (confirm(`Are you sure you want to delete Task ${task.taskNumber}: "${task.title}"?`)) {
+        DB.Tasks.delete(id);
+        Utils.toast(`Task ${task.taskNumber} deleted.`, 'warning');
+        renderTasks();
+      }
+    }
+
+    function toggleSidebar() {
+      document.getElementById('sidebar').classList.toggle('open');
+    }
+  </script>
+</body>
+</html>

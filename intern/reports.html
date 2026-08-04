@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>My Daily Reports — ITPAS Intern</title>
+  <link rel="stylesheet" href="../css/main.css">
+  <link rel="stylesheet" href="../css/components.css">
+  <link rel="stylesheet" href="../css/dark-mode.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+  <div class="app-shell">
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-brand">
+        <div class="sidebar-brand-icon"><i class="fa-solid fa-graduation-cap"></i></div>
+        <div class="sidebar-brand-text">
+          <div class="brand-name">ITPAS</div>
+          <div class="brand-sub">Intern Portal</div>
+        </div>
+      </div>
+      <div class="sidebar-user">
+        <div id="user-avatar-slot"></div>
+        <div class="sidebar-user-info">
+          <div class="sidebar-user-name" id="user-name-label">Loading...</div>
+          <div class="sidebar-user-role">Intern</div>
+        </div>
+      </div>
+      <nav class="sidebar-nav">
+        <div class="nav-section-label">Main Menu</div>
+        <a href="dashboard.html" class="nav-item"><i class="fa-solid fa-house nav-icon"></i> My Dashboard</a>
+        <a href="tasks.html" class="nav-item"><i class="fa-solid fa-list-check nav-icon"></i> My Tasks</a>
+        <a href="daily-report.html" class="nav-item"><i class="fa-solid fa-pen-to-square nav-icon"></i> Submit Daily Report</a>
+        <a href="reports.html" class="nav-item active"><i class="fa-solid fa-clock-rotate-left nav-icon"></i> My Daily Reports</a>
+        <div class="nav-section-label">Account</div>
+        <a href="profile.html" class="nav-item"><i class="fa-solid fa-user nav-icon"></i> My Profile</a>
+      </nav>
+      <div class="sidebar-footer">
+        <a href="#" class="nav-item" onclick="Auth.logout()"><i class="fa-solid fa-right-from-bracket nav-icon"></i> Logout</a>
+      </div>
+    </aside>
+
+    <header class="topbar">
+      <button class="hamburger-btn" onclick="toggleSidebar()"><i class="fa-solid fa-bars"></i></button>
+      <div>
+        <h1 class="topbar-title">My Daily Reports History</h1>
+        <div class="topbar-subtitle">Review all your submitted daily internship log entries</div>
+      </div>
+      <div class="topbar-actions">
+        <a href="daily-report.html" class="btn btn-primary btn-sm">
+          <i class="fa-solid fa-plus"></i> Submit New Report
+        </a>
+      </div>
+    </header>
+
+    <main class="main-content">
+      <div id="my-reports-container"></div>
+    </main>
+  </div>
+
+  <script src="../js/db.js"></script>
+  <script src="../js/auth.js"></script>
+  <script src="../js/utils.js"></script>
+  <script>
+    Auth.requireRole('intern');
+    const user = Auth.currentUser();
+    const intern = DB.Interns.findByUserId(user.id);
+
+    document.addEventListener('DOMContentLoaded', () => {
+      document.getElementById('user-name-label').textContent = user.name;
+      document.getElementById('user-avatar-slot').innerHTML = Utils.avatarHtml(user, 36);
+
+      if (intern) {
+        renderMyReports();
+      }
+    });
+
+    function renderMyReports() {
+      const container = document.getElementById('my-reports-container');
+      const reports = DB.DailyReports.forIntern(intern.id);
+
+      reports.sort((a, b) => new Date(b.submittedAt) - new Date(a.submittedAt));
+
+      if (!reports.length) {
+        container.innerHTML = `
+          <div class="empty-state">
+            <div class="empty-state-icon"><i class="fa-solid fa-pen-to-square"></i></div>
+            <h3>No Daily Reports Logged Yet</h3>
+            <p>You haven't submitted any daily report logs. Start logging your progress today!</p>
+            <a href="daily-report.html" class="btn btn-primary" style="margin-top: 1rem;">
+              <i class="fa-solid fa-plus"></i> Submit First Report
+            </a>
+          </div>`;
+        return;
+      }
+
+      container.innerHTML = reports.map(r => `
+        <div class="report-card">
+          <div class="report-card-header" onclick="toggleReportBody('my-report-${r.id}')">
+            <div style="display: flex; align-items: center; gap: 1rem;">
+              <div class="stat-icon" style="width:40px;height:40px;font-size:1.1rem;background:var(--primary-glow);color:var(--primary);"><i class="fa-solid fa-file-signature"></i></div>
+              <div>
+                <div class="report-date"><i class="fa-solid fa-calendar-day" style="color: var(--primary);"></i> Report for ${Utils.formatDate(r.date)}</div>
+                <div class="report-submitter">Submitted on ${Utils.formatDateTime(r.submittedAt)} (${Utils.timeAgo(r.submittedAt)})</div>
+              </div>
+            </div>
+            <button class="btn btn-ghost btn-sm"><i class="fa-solid fa-chevron-down"></i> View Full Entry</button>
+          </div>
+
+          <div class="report-body" id="my-report-${r.id}">
+            <div class="report-section">
+              <div class="report-section-label"><span class="section-letter">A</span> Tasks Assigned</div>
+              <div class="report-section-content">${Utils.escHtml(r.tasksAssigned || '—')}</div>
+            </div>
+
+            <div class="report-section">
+              <div class="report-section-label"><span class="section-letter">B</span> Activities</div>
+              <div class="report-section-content">${Utils.escHtml(r.activities || '—')}</div>
+            </div>
+
+            <div class="report-section">
+              <div class="report-section-label"><span class="section-letter">C</span> Responsibilities</div>
+              <div class="report-section-content">${Utils.escHtml(r.responsibilities || '—')}</div>
+            </div>
+
+            <div class="report-section">
+              <div class="report-section-label"><span class="section-letter">D</span> What I Gained</div>
+              <div class="report-section-content">${Utils.escHtml(r.gained || '—')}</div>
+            </div>
+
+            <div class="report-section">
+              <div class="report-section-label"><span class="section-letter">E</span> Improvements / Targets / Suggestions</div>
+              <div class="report-section-content">${Utils.escHtml(r.improvement || '—')}</div>
+            </div>
+
+            <div class="report-section">
+              <div class="report-section-label" style="color: var(--danger);"><span class="section-letter" style="background: var(--danger);">F</span> Problems Faced</div>
+              <div class="report-section-content" style="border-left: 3px solid var(--danger);">${Utils.escHtml(r.problemsFaced || '—')}</div>
+            </div>
+
+            ${r.additionalQuestions ? `
+            <div class="report-section" style="margin-bottom: 0; margin-top: 1rem;">
+              <div class="report-section-label"><span class="section-letter" style="background: var(--primary);">G</span> Additional Questions / Notes</div>
+              <div class="report-section-content">${Utils.escHtml(r.additionalQuestions)}</div>
+            </div>` : ''}
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function toggleReportBody(id) {
+      const el = document.getElementById(id);
+      el.classList.toggle('open');
+    }
+
+    function toggleSidebar() {
+      document.getElementById('sidebar').classList.toggle('open');
+    }
+  </script>
+</body>
+</html>

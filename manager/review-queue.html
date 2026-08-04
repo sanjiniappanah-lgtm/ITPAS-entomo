@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Submission Review Queue — ITPAS Manager</title>
+  <link rel="stylesheet" href="../css/main.css">
+  <link rel="stylesheet" href="../css/components.css">
+  <link rel="stylesheet" href="../css/dark-mode.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+  <div class="app-shell">
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-brand">
+        <div class="sidebar-brand-icon"><i class="fa-solid fa-graduation-cap"></i></div>
+        <div class="sidebar-brand-text">
+          <div class="brand-name">ITPAS</div>
+          <div class="brand-sub">Manager Portal</div>
+        </div>
+      </div>
+      <div class="sidebar-user">
+        <div id="user-avatar-slot"></div>
+        <div class="sidebar-user-info">
+          <div class="sidebar-user-name" id="user-name-label">Loading...</div>
+          <div class="sidebar-user-role">Manager</div>
+        </div>
+      </div>
+      <nav class="sidebar-nav">
+        <div class="nav-section-label">Main Menu</div>
+        <a href="dashboard.html" class="nav-item"><i class="fa-solid fa-chart-pie nav-icon"></i> Overview</a>
+        <a href="interns.html" class="nav-item"><i class="fa-solid fa-users nav-icon"></i> Interns</a>
+        <a href="add-intern.html" class="nav-item"><i class="fa-solid fa-user-plus nav-icon"></i> Register Intern</a>
+        <a href="tasks.html" class="nav-item"><i class="fa-solid fa-list-check nav-icon"></i> Task Management</a>
+        <a href="review-queue.html" class="nav-item active"><i class="fa-solid fa-clock-rotate-left nav-icon"></i> Review Queue</a>
+        <a href="progress.html" class="nav-item"><i class="fa-solid fa-chart-line nav-icon"></i> Progress Dashboard</a>
+        <a href="reports.html" class="nav-item"><i class="fa-solid fa-file-lines nav-icon"></i> Daily Reports</a>
+        <div class="nav-section-label">Account</div>
+        <a href="profile.html" class="nav-item"><i class="fa-solid fa-user-gear nav-icon"></i> Profile Settings</a>
+      </nav>
+      <div class="sidebar-footer">
+        <a href="#" class="nav-item" onclick="Auth.logout()"><i class="fa-solid fa-right-from-bracket nav-icon"></i> Logout</a>
+      </div>
+    </aside>
+
+    <header class="topbar">
+      <button class="hamburger-btn" onclick="toggleSidebar()"><i class="fa-solid fa-bars"></i></button>
+      <div>
+        <h1 class="topbar-title">Submission Review Queue</h1>
+        <div class="topbar-subtitle">Review submitted work, leave feedback, and trigger task pair unlocking</div>
+      </div>
+    </header>
+
+    <main class="main-content">
+      <!-- Search & Sort Controls -->
+      <div class="search-filter-bar">
+        <div class="search-box">
+          <i class="fa-solid fa-magnifying-glass search-icon"></i>
+          <input type="text" id="search-input" class="form-control" placeholder="Search by intern name or task..." oninput="renderQueue()">
+        </div>
+        <select id="sort-select" class="form-control" style="width: auto; min-width: 180px;" onchange="renderQueue()">
+          <option value="newest">Sort: Newest First</option>
+          <option value="oldest">Sort: Oldest First</option>
+          <option value="longest">Sort: Longest Waiting</option>
+        </select>
+        <select id="status-filter" class="form-control" style="width: auto; min-width: 180px;" onchange="renderQueue()">
+          <option value="Pending Review">Status: Pending Review</option>
+          <option value="Completed">Status: Completed</option>
+          <option value="Request Revision">Status: Request Revision</option>
+          <option value="all">Status: All Submissions</option>
+        </select>
+      </div>
+
+      <!-- Queue List -->
+      <div id="queue-container"></div>
+    </main>
+  </div>
+
+  <!-- Review Modal -->
+  <div class="modal-overlay" id="review-modal">
+    <div class="modal-box modal-lg">
+      <div class="modal-header">
+        <div class="modal-title" id="modal-sub-title">Review Task Submission</div>
+        <button class="modal-close" onclick="closeReviewModal()">&times;</button>
+      </div>
+      <div class="modal-body">
+        <input type="hidden" id="review-sub-id">
+        <input type="hidden" id="review-intern-id">
+
+        <div style="display: flex; gap: 1.25rem; align-items: center; background: var(--bg-surface-2); padding: 1rem; border-radius: var(--radius-md); margin-bottom: 1.25rem;">
+          <div id="modal-intern-avatar"></div>
+          <div>
+            <div id="modal-intern-name" style="font-weight: 700; font-size: 1.1rem; color: var(--text-primary);"></div>
+            <div id="modal-intern-course" style="font-size: 0.8rem; color: var(--text-secondary);"></div>
+            <div id="modal-sub-date" style="font-size: 0.75rem; color: var(--text-muted); margin-top: 2px;"></div>
+          </div>
+        </div>
+
+        <div style="margin-bottom: 1.25rem;">
+          <div style="font-weight: 700; font-size: 0.95rem; color: var(--text-primary); margin-bottom: 0.25rem;" id="modal-task-heading"></div>
+          <div style="font-size: 0.85rem; color: var(--text-secondary);" id="modal-task-desc"></div>
+        </div>
+
+        <!-- Submission Content Section -->
+        <div style="margin-bottom: 1.25rem;">
+          <div class="form-label">Submitted Content</div>
+          <div id="modal-file-preview-area"></div>
+          <div id="modal-freetext-area" style="margin-top: 0.75rem; font-size: 0.875rem; color: var(--text-primary); background: var(--bg-surface-2); padding: 1rem; border-radius: var(--radius-md); border: 1px solid var(--border-light); white-space: pre-wrap;"></div>
+        </div>
+
+        <hr style="border: 0; border-top: 1px solid var(--border-light); margin: 1.5rem 0;">
+
+        <!-- Feedback & Review Form -->
+        <div class="form-group">
+          <label class="form-label" for="review-feedback">Manager Feedback / Revision Notes <span>*</span></label>
+          <textarea id="review-feedback" class="form-control" rows="3" placeholder="Provide constructive feedback or specify required revisions..." required></textarea>
+        </div>
+      </div>
+
+      <div class="modal-footer" style="justify-content: space-between;">
+        <button type="button" class="btn btn-ghost" onclick="closeReviewModal()">Cancel</button>
+        <div style="display: flex; gap: 0.75rem;">
+          <button type="button" class="btn btn-warning" onclick="submitReviewAction('Request Revision')">
+            <i class="fa-solid fa-rotate-left"></i> Request Revision
+          </button>
+          <button type="button" class="btn btn-success" onclick="submitReviewAction('Completed')">
+            <i class="fa-solid fa-circle-check"></i> Mark Completed & Check Unlock
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="../js/db.js"></script>
+  <script src="../js/auth.js"></script>
+  <script src="../js/automation.js"></script>
+  <script src="../js/notifications.js"></script>
+  <script src="../js/utils.js"></script>
+  <script>
+    Auth.requireRole('manager');
+    const user = Auth.currentUser();
+
+    document.addEventListener('DOMContentLoaded', () => {
+      document.getElementById('user-name-label').textContent = user.name;
+      document.getElementById('user-avatar-slot').innerHTML = Utils.avatarHtml(user, 36);
+
+      // Check URL param for auto-open
+      const urlParams = new URLSearchParams(window.location.search);
+      const subId = urlParams.get('subId');
+
+      renderQueue();
+
+      if (subId) {
+        openReviewModal(subId);
+      }
+    });
+
+    function renderQueue() {
+      const q = document.getElementById('search-input').value.trim().toLowerCase();
+      const sort = document.getElementById('sort-select').value;
+      const filter = document.getElementById('status-filter').value;
+      const container = document.getElementById('queue-container');
+
+      let submissions = DB.Submissions.all();
+
+      if (filter !== 'all') {
+        submissions = submissions.filter(s => s.status === filter);
+      }
+
+      // Filter by search
+      submissions = submissions.filter(s => {
+        const intern = DB.Interns.find(s.internId);
+        const internUser = intern ? DB.Users.find(intern.userId) : null;
+        const task = DB.Tasks.findByNumber(s.taskNumber);
+        const nameMatch = internUser && internUser.name.toLowerCase().includes(q);
+        const taskMatch = task && (task.title.toLowerCase().includes(q) || `task ${s.taskNumber}`.includes(q));
+        return !q || nameMatch || taskMatch;
+      });
+
+      // Sort
+      submissions.sort((a, b) => {
+        const dateA = new Date(a.submittedAt).getTime();
+        const dateB = new Date(b.submittedAt).getTime();
+        if (sort === 'newest') return dateB - dateA;
+        if (sort === 'oldest' || sort === 'longest') return dateA - dateB;
+        return 0;
+      });
+
+      if (!submissions.length) {
+        container.innerHTML = `
+          <div class="empty-state">
+            <div class="empty-state-icon"><i class="fa-solid fa-inbox"></i></div>
+            <h3>No Submissions Found</h3>
+            <p>No task submissions matched your criteria.</p>
+          </div>`;
+        return;
+      }
+
+      container.innerHTML = submissions.map(sub => {
+        const intern = DB.Interns.find(sub.internId);
+        const internUser = intern ? DB.Users.find(intern.userId) : null;
+        const task = DB.Tasks.findByNumber(sub.taskNumber);
+        const latestFb = DB.Feedback.latestForSubmission(sub.id);
+
+        return `
+          <div class="card" style="margin-bottom: 1rem;">
+            <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 1rem;">
+              <div style="display: flex; align-items: center; gap: 1rem;">
+                ${Utils.avatarHtml(internUser, 46)}
+                <div>
+                  <div style="font-weight: 700; font-size: 1rem; color: var(--text-primary);">${internUser ? Utils.escHtml(internUser.name) : 'Intern'}</div>
+                  <div style="font-size: 0.85rem; color: var(--primary); font-weight: 600;">
+                    Task ${sub.taskNumber}: ${task ? Utils.escHtml(task.title) : ''}
+                  </div>
+                  <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 2px;">
+                    Submitted ${Utils.timeAgo(sub.submittedAt)} (${Utils.formatDateTime(sub.submittedAt)})
+                  </div>
+                </div>
+              </div>
+
+              <div style="display: flex; align-items: center; gap: 1rem;">
+                ${Utils.statusBadge(sub.status)}
+                <button onclick="openReviewModal('${sub.id}')" class="btn btn-primary btn-sm">
+                  <i class="fa-solid fa-signature"></i> Review Submission
+                </button>
+              </div>
+            </div>
+
+            ${latestFb ? `
+              <div class="feedback-box">
+                <div class="feedback-label"><i class="fa-solid fa-comment-dots"></i> Manager Feedback (${Utils.formatDate(latestFb.reviewedAt)})</div>
+                <div class="feedback-text">${Utils.escHtml(latestFb.comments)}</div>
+              </div>` : ''}
+          </div>`;
+      }).join('');
+    }
+
+    function openReviewModal(subId) {
+      const sub = DB.Submissions.find(subId);
+      if (!sub) return;
+
+      const intern = DB.Interns.find(sub.internId);
+      const internUser = intern ? DB.Users.find(intern.userId) : null;
+      const task = DB.Tasks.findByNumber(sub.taskNumber);
+
+      document.getElementById('review-sub-id').value = sub.id;
+      document.getElementById('review-intern-id').value = sub.internId;
+
+      document.getElementById('modal-sub-title').textContent = `Reviewing Submission — Task ${sub.taskNumber}`;
+      document.getElementById('modal-intern-avatar').innerHTML = Utils.avatarHtml(internUser, 54);
+      document.getElementById('modal-intern-name').textContent = internUser ? internUser.name : 'Intern';
+      document.getElementById('modal-intern-course').textContent = `${intern?.university || ''} — ${intern?.course || ''}`;
+      document.getElementById('modal-sub-date').textContent = `Submitted on ${Utils.formatDateTime(sub.submittedAt)} (${Utils.timeAgo(sub.submittedAt)})`;
+
+      document.getElementById('modal-task-heading').textContent = `Task ${sub.taskNumber}: ${task?.title || ''}`;
+      document.getElementById('modal-task-desc').textContent = task?.description || '';
+
+      // File preview
+      const previewArea = document.getElementById('modal-file-preview-area');
+      if (sub.fileData) {
+        previewArea.innerHTML = `
+          <div class="file-preview">
+            <div class="file-preview-icon">${Utils.getFileIcon(sub.fileType)}</div>
+            <div class="file-preview-info">
+              <div class="file-preview-name">${Utils.escHtml(sub.fileName)}</div>
+              <div class="file-preview-meta">Uploaded File</div>
+            </div>
+            <a href="${sub.fileData}" download="${sub.fileName}" class="btn btn-ghost btn-sm">
+              <i class="fa-solid fa-download"></i> Download
+            </a>
+          </div>`;
+      } else {
+        previewArea.innerHTML = '<span class="text-muted" style="font-size:0.85rem;">No file attached for this submission.</span>';
+      }
+
+      // Free text
+      const freeTextArea = document.getElementById('modal-freetext-area');
+      if (sub.freeText) {
+        freeTextArea.style.display = 'block';
+        freeTextArea.textContent = sub.freeText;
+      } else {
+        freeTextArea.style.display = 'none';
+      }
+
+      // Populate existing feedback if any
+      const existingFb = DB.Feedback.latestForSubmission(sub.id);
+      document.getElementById('review-feedback').value = existingFb ? existingFb.comments : '';
+
+      document.getElementById('review-modal').classList.add('open');
+    }
+
+    function closeReviewModal() {
+      document.getElementById('review-modal').classList.remove('open');
+    }
+
+    function submitReviewAction(newStatus) {
+      const subId = document.getElementById('review-sub-id').value;
+      const internId = document.getElementById('review-intern-id').value;
+      const feedbackText = document.getElementById('review-feedback').value.trim();
+
+      if (!feedbackText) {
+        Utils.toast('Please provide feedback notes before saving.', 'warning');
+        return;
+      }
+
+      const sub = DB.Submissions.find(subId);
+      if (!sub) return;
+
+      // Update submission status
+      DB.Submissions.update(subId, { status: newStatus });
+
+      // Update Assignment status
+      const assignment = DB.Assignments.find(sub.assignmentId);
+      if (assignment) {
+        DB.Assignments.update(assignment.id, { status: newStatus });
+      }
+
+      // Create Feedback Record
+      DB.Feedback.create({
+        submissionId: subId,
+        managerId: user.id,
+        comments: feedbackText,
+        status: newStatus,
+      });
+
+      const intern = DB.Interns.find(internId);
+      const internUser = intern ? DB.Users.find(intern.userId) : null;
+
+      if (newStatus === 'Completed') {
+        if (internUser) NotifyEvent.taskCompleted(internUser.id, sub.taskNumber);
+        Utils.toast(`Task ${sub.taskNumber} marked as Completed!`, 'success');
+
+        // 🔥 Core Automation Engine Trigger 🔥
+        Automation.checkAndUnlockNextPair(internId);
+      } else if (newStatus === 'Request Revision') {
+        if (internUser) NotifyEvent.revisionRequested(internUser.id, sub.taskNumber, feedbackText);
+        Utils.toast(`Revision requested for Task ${sub.taskNumber}.`, 'warning');
+      }
+
+      closeReviewModal();
+      renderQueue();
+    }
+
+    function toggleSidebar() {
+      document.getElementById('sidebar').classList.toggle('open');
+    }
+  </script>
+</body>
+</html>
