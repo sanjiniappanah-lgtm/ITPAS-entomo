@@ -474,15 +474,41 @@ tbody tr:last-child td { border-bottom: none; }
 .btn:hover::after { background: rgba(255,255,255,0.1); }
 .btn:active { transform: scale(0.97); }
 
+.btn:disabled {
+  background: var(--bg-surface-2) !important;
+  color: var(--text-muted) !important;
+  border: 1px solid var(--border-light) !important;
+  box-shadow: none !important;
+  cursor: not-allowed !important;
+  transform: none !important;
+}
+.btn:disabled::after { display: none !important; }
+
 .btn-primary   { background: linear-gradient(135deg, var(--primary), var(--primary-dark)); color: white; box-shadow: 0 4px 12px rgba(99,102,241,0.35); }
-.btn-primary:hover { box-shadow: 0 6px 20px rgba(99,102,241,0.5); transform: translateY(-1px); }
+.btn-primary:hover { box-shadow: 0 6px 20px rgba(99,102,241,0.5); transform: translateY(-1px); color: white; }
 .btn-success   { background: linear-gradient(135deg, var(--success), #059669); color: white; box-shadow: 0 4px 12px rgba(16,185,129,0.3); }
-.btn-success:hover { box-shadow: 0 6px 20px rgba(16,185,129,0.45); transform: translateY(-1px); }
+.btn-success:hover { box-shadow: 0 6px 20px rgba(16,185,129,0.45); transform: translateY(-1px); color: white; }
 .btn-warning   { background: linear-gradient(135deg, var(--warning), #d97706); color: white; box-shadow: 0 4px 12px rgba(245,158,11,0.3); }
+.btn-warning:hover { box-shadow: 0 6px 20px rgba(245,158,11,0.45); transform: translateY(-1px); color: white; }
 .btn-danger    { background: linear-gradient(135deg, var(--danger), #e11d48); color: white; box-shadow: 0 4px 12px rgba(244,63,94,0.3); }
+.btn-danger:hover { box-shadow: 0 6px 20px rgba(244,63,94,0.45); transform: translateY(-1px); color: white; }
 .btn-ghost     { background: transparent; color: var(--text-secondary); border: 1px solid var(--border-light); }
 .btn-ghost:hover { background: var(--bg-surface-2); color: var(--primary); border-color: var(--primary); }
 .btn-icon      { padding: 0.5rem; border-radius: var(--radius-sm); }
+
+/* ── Custom Dropdown Items ─────────────────────────────────────────────── */
+.dropdown-item {
+  padding: 0.6rem 1rem;
+  cursor: pointer;
+  font-size: 0.9rem;
+  color: var(--text-primary);
+  transition: background 0.15s ease;
+}
+.dropdown-item:hover {
+  background: var(--bg-base);
+  color: var(--primary);
+  font-weight: 500;
+}
 .btn-sm        { padding: 0.35rem 0.75rem; font-size: 0.8rem; }
 .btn-lg        { padding: 0.85rem 1.75rem; font-size: 1rem; border-radius: var(--radius-md); }
 .btn-full      { width: 100%; justify-content: center; }

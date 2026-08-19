@@ -1,23 +1,26 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Intern Dashboard — ITPAS</title>
+  <title>Intern Dashboard - InternSpect</title>
   <link rel="stylesheet" href="../css/main.css">
   <link rel="stylesheet" href="../css/components.css">
   <link rel="stylesheet" href="../css/dark-mode.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel='stylesheet' href='https://cdn-uicons.flaticon.com/uicons-bold-straight/css/uicons-bold-straight.css'>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
+
 <body>
   <div class="app-shell">
     <!-- Sidebar -->
     <aside class="sidebar" id="sidebar">
       <div class="sidebar-brand">
-        <div class="sidebar-brand-icon"><i class="fa-solid fa-graduation-cap"></i></div>
+        <div class="sidebar-brand-icon"><i class="fi fi-bs-rocket-lunch"></i></div>
         <div class="sidebar-brand-text">
-          <div class="brand-name">ITPAS</div>
+          <div class="brand-name">InternSpect</div>
           <div class="brand-sub">Intern Portal</div>
         </div>
       </div>
@@ -67,7 +70,8 @@
         <div class="topbar-subtitle">Track your automated internship progress & complete tasks</div>
       </div>
       <div class="topbar-actions">
-        <button class="topbar-btn" id="dark-mode-toggle" onclick="Utils.toggleDarkMode()" title="Toggle Dark Mode">🌙</button>
+        <button class="topbar-btn" id="dark-mode-toggle" onclick="Utils.toggleDarkMode()"
+          title="Toggle Dark Mode">🌙</button>
         <div style="position: relative;">
           <button class="topbar-btn" onclick="toggleNotifDropdown()" title="Notifications">
             <i class="fa-solid fa-bell"></i>
@@ -76,7 +80,7 @@
           <div class="notif-dropdown" id="notif-dropdown">
             <div class="notif-header">
               <span>Notifications</span>
-              <button class="btn btn-ghost btn-sm" onclick="DB.Notifications.markAllRead(Auth.getSession().userId); Utils.updateNotificationBadge(); renderNotifs();">Mark all read</button>
+              <button class="btn btn-ghost btn-sm" onclick="markAllNotificationsRead()">Mark all read</button>
             </div>
             <div id="notif-list-container"></div>
           </div>
@@ -91,7 +95,7 @@
 
       <!-- Quick Stats Grid -->
       <div class="stats-grid">
-        <div class="stat-card" style="--card-color: var(--primary);">
+        <div class="stat-card" style="--card-color: var(--primary); --card-bg: var(--primary-glow);">
           <div class="stat-icon" style="color: var(--primary);"><i class="fa-solid fa-spinner"></i></div>
           <div>
             <div class="stat-value" id="stat-in-progress">0</div>
@@ -99,24 +103,24 @@
           </div>
         </div>
 
-        <div class="stat-card" style="--card-color: var(--success);">
-          <div class="stat-icon" style="color: var(--success);"><i class="fa-solid fa-circle-check"></i></div>
+        <div class="stat-card" style="--card-color: var(--primary); --card-bg: var(--primary-glow);">
+          <div class="stat-icon" style="color: var(--primary);"><i class="fa-solid fa-circle-check"></i></div>
           <div>
             <div class="stat-value" id="stat-completed">0</div>
             <div class="stat-label">Completed Tasks</div>
           </div>
         </div>
 
-        <div class="stat-card" style="--card-color: var(--warning);">
-          <div class="stat-icon" style="color: var(--warning);"><i class="fa-solid fa-clock"></i></div>
+        <div class="stat-card" style="--card-color: var(--primary); --card-bg: var(--primary-glow);">
+          <div class="stat-icon" style="color: var(--primary);"><i class="fa-solid fa-clock"></i></div>
           <div>
             <div class="stat-value" id="stat-pending">0</div>
             <div class="stat-label">Pending Review</div>
           </div>
         </div>
 
-        <div class="stat-card" style="--card-color: var(--danger);">
-          <div class="stat-icon" style="color: var(--danger);"><i class="fa-solid fa-rotate-left"></i></div>
+        <div class="stat-card" style="--card-color: var(--primary); --card-bg: var(--primary-glow);">
+          <div class="stat-icon" style="color: var(--primary);"><i class="fa-solid fa-rotate-left"></i></div>
           <div>
             <div class="stat-value" id="stat-remaining">20</div>
             <div class="stat-label">Remaining Tasks</div>
@@ -130,16 +134,19 @@
         <div class="card">
           <div class="card-header">
             <div>
-              <div class="card-title"><i class="fa-solid fa-list-check" style="color: var(--primary);"></i> Current Active Tasks</div>
+              <div class="card-title"><i class="fa-solid fa-list-check" style="color: var(--primary);"></i> Current
+                Active Tasks</div>
               <div class="card-subtitle">Tasks assigned for your current progression stage</div>
             </div>
-            <a href="tasks.html" class="btn btn-ghost btn-sm">View All 20 Tasks <i class="fa-solid fa-arrow-right"></i></a>
+            <a href="tasks.html" class="btn btn-ghost btn-sm">View All 20 Tasks <i
+                class="fa-solid fa-arrow-right"></i></a>
           </div>
           <div id="active-tasks-list"></div>
         </div>
 
         <!-- Completion Chart -->
-        <div class="card" style="display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center;">
+        <div class="card"
+          style="display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center;">
           <div class="card-title" style="margin-bottom: 1rem;">Overall Completion Progress</div>
           <div class="chart-container-sm" style="width: 180px; height: 180px;">
             <canvas id="completion-gauge"></canvas>
@@ -155,24 +162,24 @@
     </main>
   </div>
 
+  <script src="../js/api.js"></script>
   <script src="../js/db.js"></script>
   <script src="../js/auth.js"></script>
   <script src="../js/automation.js"></script>
   <script src="../js/utils.js"></script>
   <script src="../js/charts.js"></script>
   <script>
-    Auth.requireRole('intern');
-    const user = Auth.currentUser();
-    const intern = DB.Interns.findByUserId(user.id);
+    let user, intern;
 
-    document.addEventListener('DOMContentLoaded', () => {
+    document.addEventListener('DOMContentLoaded', async () => {
+      if (!await Auth.requireRole('intern')) return;
+      user = Auth.currentUser();
+      intern = DB.Interns.findByUserId(user.id);
       document.getElementById('user-name-label').textContent = user.name;
       document.getElementById('user-avatar-slot').innerHTML = Utils.avatarHtml(user, 36);
-      document.getElementById('welcome-heading').textContent = `Welcome back, ${user.name.split(' ')[0]}! 👋`;
+      document.getElementById('welcome-heading').textContent = `Welcome back, ${user.name.split(' ')[0]}!`;
 
-      if (intern) {
-        loadInternDashboard();
-      }
+      if (intern) loadInternDashboard();
       Utils.updateNotificationBadge();
     });
 
@@ -252,6 +259,15 @@
         Utils.renderNotificationDropdown('notif-list-container');
       }
     }
+
+    async function markAllNotificationsRead() {
+      const session = Auth.getSession();
+      if (!session) return;
+      await DB.Notifications.markAllRead(session.userId);
+      Utils.updateNotificationBadge();
+      Utils.renderNotificationDropdown('notif-list-container');
+    }
   </script>
 </body>
+
 </html>

@@ -1,21 +1,24 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>My Tasks Path — ITPAS Intern</title>
+  <title>My Tasks Path - InternSpect</title>
   <link rel="stylesheet" href="../css/main.css">
   <link rel="stylesheet" href="../css/components.css">
   <link rel="stylesheet" href="../css/dark-mode.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel='stylesheet' href='https://cdn-uicons.flaticon.com/uicons-bold-straight/css/uicons-bold-straight.css'>
 </head>
+
 <body>
   <div class="app-shell">
     <aside class="sidebar" id="sidebar">
       <div class="sidebar-brand">
-        <div class="sidebar-brand-icon"><i class="fa-solid fa-graduation-cap"></i></div>
+        <div class="sidebar-brand-icon"><i class="fi fi-bs-rocket-lunch"></i></div>
         <div class="sidebar-brand-text">
-          <div class="brand-name">ITPAS</div>
+          <div class="brand-name">InternSpect</div>
           <div class="brand-sub">Intern Portal</div>
         </div>
       </div>
@@ -30,13 +33,16 @@
         <div class="nav-section-label">Main Menu</div>
         <a href="dashboard.html" class="nav-item"><i class="fa-solid fa-house nav-icon"></i> My Dashboard</a>
         <a href="tasks.html" class="nav-item active"><i class="fa-solid fa-list-check nav-icon"></i> My Tasks</a>
-        <a href="daily-report.html" class="nav-item"><i class="fa-solid fa-pen-to-square nav-icon"></i> Submit Daily Report</a>
-        <a href="reports.html" class="nav-item"><i class="fa-solid fa-clock-rotate-left nav-icon"></i> My Daily Reports</a>
+        <a href="daily-report.html" class="nav-item"><i class="fa-solid fa-pen-to-square nav-icon"></i> Submit Daily
+          Report</a>
+        <a href="reports.html" class="nav-item"><i class="fa-solid fa-clock-rotate-left nav-icon"></i> My Daily
+          Reports</a>
         <div class="nav-section-label">Account</div>
         <a href="profile.html" class="nav-item"><i class="fa-solid fa-user nav-icon"></i> My Profile</a>
       </nav>
       <div class="sidebar-footer">
-        <a href="#" class="nav-item" onclick="Auth.logout()"><i class="fa-solid fa-right-from-bracket nav-icon"></i> Logout</a>
+        <a href="#" class="nav-item" onclick="Auth.logout()"><i class="fa-solid fa-right-from-bracket nav-icon"></i>
+          Logout</a>
       </div>
     </aside>
 
@@ -49,10 +55,6 @@
     </header>
 
     <main class="main-content">
-      <div class="alert-banner alert-info">
-        <i class="fa-solid fa-bolt"></i>
-        <span><strong>Automated Progression Logic:</strong> When both tasks in your active pair are submitted, the next pair unlocks automatically!</span>
-      </div>
 
       <!-- Filter tabs -->
       <div class="tabs">
@@ -68,23 +70,23 @@
     </main>
   </div>
 
+  <script src="../js/api.js"></script>
   <script src="../js/db.js"></script>
   <script src="../js/auth.js"></script>
   <script src="../js/automation.js"></script>
   <script src="../js/utils.js"></script>
   <script>
-    Auth.requireRole('intern');
-    const user = Auth.currentUser();
-    const intern = DB.Interns.findByUserId(user.id);
+    let user, intern;
     let activeFilter = 'all';
 
-    document.addEventListener('DOMContentLoaded', () => {
+    document.addEventListener('DOMContentLoaded', async () => {
+      if (!await Auth.requireRole('intern')) return;
+      user = Auth.currentUser();
+      intern = DB.Interns.findByUserId(user.id);
       document.getElementById('user-name-label').textContent = user.name;
       document.getElementById('user-avatar-slot').innerHTML = Utils.avatarHtml(user, 36);
 
-      if (intern) {
-        renderTasksPath();
-      }
+      if (intern) renderTasksPath();
     });
 
     function filterTasks(status, btn) {
@@ -138,22 +140,23 @@
         if (status === 'Completed') cardClass = 'completed';
         if (status === 'Request Revision') cardClass = 'revision';
 
-        // Clickable card navigates to submit page (only if not locked/completed)
-        const clickHandler = isSubmittable
+        // Clickable card navigates to submit page (only if not locked)
+        const clickHandler = !isLocked
           ? `onclick="window.location.href='${submitUrl}'" style="cursor: pointer;"`
-          : (isLocked ? `style="cursor: not-allowed; opacity: 0.7;"` : '');
+          : `style="cursor: not-allowed; opacity: 0.7;"`;
 
         return `
-          <div class="card task-card ${cardClass}" ${clickHandler} style="margin-bottom: 0; ${isSubmittable ? 'cursor:pointer;' : ''}">
+          <div class="card task-card ${cardClass}" ${clickHandler} style="margin-bottom: 0; ${!isLocked ? 'cursor:pointer;' : ''}">
             <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 0.5rem;">
               <div>
                 <div style="display: flex; align-items: center; gap: 0.5rem;">
                   <span class="task-number">Task ${task.taskNumber}</span>
                   ${isLocked ? '<i class="fa-solid fa-lock" style="color: var(--text-muted); font-size: 0.8rem;"></i>' : ''}
-                  ${isSubmittable ? '<i class="fa-solid fa-arrow-up-right-from-square" style="color: var(--primary); font-size: 0.75rem;" title="Click to submit"></i>' : ''}
+                  ${!isLocked ? '<i class="fa-solid fa-arrow-up-right-from-square" style="color: var(--primary); font-size: 0.75rem;" title="Click to view/submit"></i>' : ''}
                 </div>
                 <div class="task-title" style="font-size: 1.05rem;">${Utils.escHtml(task.title)}</div>
                 <div class="task-desc">${Utils.escHtml(task.description)}</div>
+                ${assignment && assignment.dueDate ? `<div style="font-size:0.8rem;color:var(--text-muted);margin-top:0.35rem;"><i class="fa-solid fa-calendar"></i> Due: ${Utils.formatDate(assignment.dueDate)}</div>` : ''}
               </div>
               <div>${Utils.statusBadge(status)}</div>
             </div>
@@ -173,7 +176,9 @@
 
             ${status === 'Completed' ? `
               <div style="display: flex; justify-content: flex-end; margin-top: 1rem;">
-                <span class="status-badge badge-completed" style="font-size:0.8rem;"><i class="fa-solid fa-circle-check"></i> Completed & Unlocked</span>
+                <a href="${submitUrl}" class="btn btn-success btn-sm" onclick="event.stopPropagation()">
+                  <i class="fa-solid fa-circle-check"></i> Completed (View Submission)
+                </a>
               </div>` : ''}
           </div>`;
       }).join('');
@@ -184,4 +189,5 @@
     }
   </script>
 </body>
+
 </html>

@@ -1,21 +1,24 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Intern Profile — ITPAS</title>
+  <title>Intern Profile - InternSpect</title>
   <link rel="stylesheet" href="../css/main.css">
   <link rel="stylesheet" href="../css/components.css">
   <link rel="stylesheet" href="../css/dark-mode.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel='stylesheet' href='https://cdn-uicons.flaticon.com/uicons-bold-straight/css/uicons-bold-straight.css'>
 </head>
+
 <body>
   <div class="app-shell">
     <aside class="sidebar" id="sidebar">
       <div class="sidebar-brand">
-        <div class="sidebar-brand-icon"><i class="fa-solid fa-graduation-cap"></i></div>
+        <div class="sidebar-brand-icon"><i class="fi fi-bs-rocket-lunch"></i></div>
         <div class="sidebar-brand-text">
-          <div class="brand-name">ITPAS</div>
+          <div class="brand-name">InternSpect</div>
           <div class="brand-sub">Intern Portal</div>
         </div>
       </div>
@@ -30,13 +33,16 @@
         <div class="nav-section-label">Main Menu</div>
         <a href="dashboard.html" class="nav-item"><i class="fa-solid fa-house nav-icon"></i> My Dashboard</a>
         <a href="tasks.html" class="nav-item"><i class="fa-solid fa-list-check nav-icon"></i> My Tasks</a>
-        <a href="daily-report.html" class="nav-item"><i class="fa-solid fa-pen-to-square nav-icon"></i> Submit Daily Report</a>
-        <a href="reports.html" class="nav-item"><i class="fa-solid fa-clock-rotate-left nav-icon"></i> My Daily Reports</a>
+        <a href="daily-report.html" class="nav-item"><i class="fa-solid fa-pen-to-square nav-icon"></i> Submit Daily
+          Report</a>
+        <a href="reports.html" class="nav-item"><i class="fa-solid fa-clock-rotate-left nav-icon"></i> My Daily
+          Reports</a>
         <div class="nav-section-label">Account</div>
         <a href="profile.html" class="nav-item active"><i class="fa-solid fa-user nav-icon"></i> My Profile</a>
       </nav>
       <div class="sidebar-footer">
-        <a href="#" class="nav-item" onclick="Auth.logout()"><i class="fa-solid fa-right-from-bracket nav-icon"></i> Logout</a>
+        <a href="#" class="nav-item" onclick="Auth.logout()"><i class="fa-solid fa-right-from-bracket nav-icon"></i>
+          Logout</a>
       </div>
     </aside>
 
@@ -59,7 +65,8 @@
             <div class="profile-name" id="header-profile-name">Intern Name</div>
             <div class="profile-email" id="header-profile-email">intern@itpas.com</div>
             <div class="profile-badges">
-              <span class="profile-badge" id="header-profile-uni"><i class="fa-solid fa-graduation-cap"></i> University</span>
+              <span class="profile-badge" id="header-profile-uni"><i class="fa-solid fa-graduation-cap"></i>
+                University</span>
               <span class="profile-badge" id="header-profile-course"><i class="fa-solid fa-book"></i> Course</span>
             </div>
           </div>
@@ -89,7 +96,8 @@
               </div>
               <div class="form-group">
                 <label class="form-label" for="profile-photo">Update Profile Photo</label>
-                <input type="file" id="profile-photo" class="form-control" accept="image/*" onchange="updatePhotoPreview(this)">
+                <input type="file" id="profile-photo" class="form-control" accept="image/*"
+                  onchange="updatePhotoPreview(this)">
               </div>
             </div>
 
@@ -106,17 +114,18 @@
 
             <div class="form-row">
               <div class="form-group">
-                <label class="form-label">Internship Start Date</label>
-                <input type="text" id="profile-start-date" class="form-control" readonly style="opacity:0.7;">
+                <label class="form-label" for="profile-start-date">Internship Start Date</label>
+                <input type="date" id="profile-start-date" class="form-control">
               </div>
               <div class="form-group">
-                <label class="form-label">Internship End Date</label>
-                <input type="text" id="profile-end-date" class="form-control" readonly style="opacity:0.7;">
+                <label class="form-label" for="profile-end-date">Internship End Date</label>
+                <input type="date" id="profile-end-date" class="form-control">
               </div>
             </div>
 
             <div style="display: flex; justify-content: flex-end;">
-              <button type="submit" class="btn btn-primary"><i class="fa-solid fa-floppy-disk"></i> Save Profile</button>
+              <button type="submit" class="btn btn-primary"><i class="fa-solid fa-floppy-disk"></i> Save
+                Profile</button>
             </div>
           </form>
         </div>
@@ -129,12 +138,14 @@
           <form id="security-form" onsubmit="changePassword(event)">
             <div class="form-group">
               <label class="form-label" for="new-password">New Password <span>*</span></label>
-              <input type="password" id="new-password" class="form-control" placeholder="••••••••" required minlength="6">
+              <input type="password" id="new-password" class="form-control" placeholder="••••••••" required
+                minlength="6">
             </div>
 
             <div class="form-group">
               <label class="form-label" for="confirm-password">Confirm New Password <span>*</span></label>
-              <input type="password" id="confirm-password" class="form-control" placeholder="••••••••" required minlength="6">
+              <input type="password" id="confirm-password" class="form-control" placeholder="••••••••" required
+                minlength="6">
             </div>
 
             <div style="display: flex; justify-content: flex-end;">
@@ -146,16 +157,19 @@
     </main>
   </div>
 
+  <script src="../js/api.js"></script>
   <script src="../js/db.js"></script>
   <script src="../js/auth.js"></script>
   <script src="../js/utils.js"></script>
   <script>
-    Auth.requireRole('intern');
-    let currentUser = Auth.currentUser();
-    let intern = DB.Interns.findByUserId(currentUser.id);
-    let newPhotoBase64 = currentUser.photo || '';
+    let currentUser, intern;
+    let newPhotoBase64 = '';
 
-    document.addEventListener('DOMContentLoaded', () => {
+    document.addEventListener('DOMContentLoaded', async () => {
+      if (!await Auth.requireRole('intern')) return;
+      currentUser = Auth.currentUser();
+      intern = DB.Interns.findByUserId(currentUser.id);
+      newPhotoBase64 = currentUser.photo || '';
       loadProfileData();
     });
 
@@ -175,8 +189,8 @@
         document.getElementById('header-profile-course').innerHTML = `<i class="fa-solid fa-book"></i> ${Utils.escHtml(intern.course)}`;
         document.getElementById('profile-uni').value = intern.university || '';
         document.getElementById('profile-course').value = intern.course || '';
-        document.getElementById('profile-start-date').value = Utils.formatDate(intern.startDate);
-        document.getElementById('profile-end-date').value = Utils.formatDate(intern.endDate);
+        document.getElementById('profile-start-date').value = intern.startDate || '';
+        document.getElementById('profile-end-date').value = intern.endDate || '';
       }
 
       document.getElementById('profile-name').value = currentUser.name;
@@ -191,23 +205,29 @@
       }
     }
 
-    function saveProfile(e) {
+    async function saveProfile(e) {
       e.preventDefault();
       const name = document.getElementById('profile-name').value.trim();
       const phone = document.getElementById('profile-phone').value.trim();
       const uni = document.getElementById('profile-uni').value.trim();
       const course = document.getElementById('profile-course').value.trim();
 
-      DB.Users.update(currentUser.id, { name, phone, photo: newPhotoBase64 });
-      if (intern) {
-        DB.Interns.update(intern.id, { university: uni, course: course });
-      }
+      const startDate = document.getElementById('profile-start-date').value;
+      const endDate = document.getElementById('profile-end-date').value;
 
-      Utils.toast('Profile details updated successfully!', 'success');
-      loadProfileData();
+      try {
+        await DB.Users.update(currentUser.id, { name, phone, photo: newPhotoBase64 });
+        if (intern) {
+          await DB.Interns.update(intern.id, { university: uni, course: course, startDate: startDate, endDate: endDate });
+        }
+        Utils.toast('Profile details updated successfully!', 'success');
+        loadProfileData();
+      } catch (err) {
+        Utils.toast(err.message || 'Update failed', 'error');
+      }
     }
 
-    function changePassword(e) {
+    async function changePassword(e) {
       e.preventDefault();
       const newPass = document.getElementById('new-password').value;
       const confPass = document.getElementById('confirm-password').value;
@@ -217,9 +237,13 @@
         return;
       }
 
-      DB.Users.update(currentUser.id, { password: newPass });
-      Utils.toast('Password updated successfully!', 'success');
-      document.getElementById('security-form').reset();
+      try {
+        await DB.Users.update(currentUser.id, { password: newPass });
+        Utils.toast('Password updated successfully!', 'success');
+        document.getElementById('security-form').reset();
+      } catch (err) {
+        Utils.toast(err.message || 'Password update failed', 'error');
+      }
     }
 
     function toggleSidebar() {
@@ -227,4 +251,5 @@
     }
   </script>
 </body>
+
 </html>

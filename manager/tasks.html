@@ -1,21 +1,24 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Task Configuration — ITPAS Manager</title>
+  <title>Task Configuration - InternSpect</title>
   <link rel="stylesheet" href="../css/main.css">
   <link rel="stylesheet" href="../css/components.css">
   <link rel="stylesheet" href="../css/dark-mode.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel='stylesheet' href='https://cdn-uicons.flaticon.com/uicons-bold-straight/css/uicons-bold-straight.css'>
 </head>
+
 <body>
   <div class="app-shell">
     <aside class="sidebar" id="sidebar">
       <div class="sidebar-brand">
-        <div class="sidebar-brand-icon"><i class="fa-solid fa-graduation-cap"></i></div>
+        <div class="sidebar-brand-icon"><i class="fi fi-bs-rocket-lunch"></i></div>
         <div class="sidebar-brand-text">
-          <div class="brand-name">ITPAS</div>
+          <div class="brand-name">InternSpect</div>
           <div class="brand-sub">Manager Portal</div>
         </div>
       </div>
@@ -32,14 +35,15 @@
         <a href="interns.html" class="nav-item"><i class="fa-solid fa-users nav-icon"></i> Interns</a>
         <a href="add-intern.html" class="nav-item"><i class="fa-solid fa-user-plus nav-icon"></i> Register Intern</a>
         <a href="tasks.html" class="nav-item active"><i class="fa-solid fa-list-check nav-icon"></i> Task Management</a>
-        <a href="review-queue.html" class="nav-item"><i class="fa-solid fa-clock-rotate-left nav-icon"></i> Review Queue</a>
-        <a href="progress.html" class="nav-item"><i class="fa-solid fa-chart-line nav-icon"></i> Progress Dashboard</a>
+        <a href="review-queue.html" class="nav-item"><i class="fa-solid fa-clock-rotate-left nav-icon"></i> Review
+          Queue</a>
         <a href="reports.html" class="nav-item"><i class="fa-solid fa-file-lines nav-icon"></i> Daily Reports</a>
         <div class="nav-section-label">Account</div>
         <a href="profile.html" class="nav-item"><i class="fa-solid fa-user-gear nav-icon"></i> Profile Settings</a>
       </nav>
       <div class="sidebar-footer">
-        <a href="#" class="nav-item" onclick="Auth.logout()"><i class="fa-solid fa-right-from-bracket nav-icon"></i> Logout</a>
+        <a href="#" class="nav-item" onclick="Auth.logout()"><i class="fa-solid fa-right-from-bracket nav-icon"></i>
+          Logout</a>
       </div>
     </aside>
 
@@ -50,16 +54,17 @@
         <div class="topbar-subtitle">Configure Tasks 1 through 20 for automated progression</div>
       </div>
       <div class="topbar-actions">
-        <button class="btn btn-primary btn-sm" onclick="openAddTaskModal()">
-          <i class="fa-solid fa-plus"></i> Add New Task
-        </button>
       </div>
     </header>
 
     <main class="main-content">
-      <div class="alert-banner alert-info">
-        <i class="fa-solid fa-circle-info"></i>
-        <span>Tasks are paired automatically: <strong>Task 1 & 2</strong> → <strong>Task 3 & 4</strong> → ... → <strong>Task 19 & 20</strong>. Editing titles or descriptions will update what interns see on their dashboard.</span>
+      <div class="search-filter-bar"
+        style="display: flex; gap: 0.75rem; align-items: center; justify-content: flex-end; flex-wrap: wrap; width: 100%;">
+        <div style="margin-left: auto; display: flex; gap: 0.5rem;">
+          <button class="btn btn-primary" onclick="openAddTaskModal()">
+            <i class="fa-solid fa-plus"></i> Add New Task
+          </button>
+        </div>
       </div>
 
       <div class="card">
@@ -71,7 +76,7 @@
                 <th style="width: 80px;">Task</th>
                 <th>Title</th>
                 <th>Description</th>
-                <th>Due Date</th>
+                <th>Duration (days)</th>
                 <th style="width: 120px; text-align: right;">Actions</th>
               </tr>
             </thead>
@@ -100,19 +105,22 @@
             </div>
 
             <div class="form-group">
-              <label class="form-label" for="task-due-date">Default Due Date (Optional)</label>
-              <input type="date" id="task-due-date" class="form-control">
+              <label class="form-label" for="task-due-days">Duration (days) <span>*</span></label>
+              <input type="number" id="task-due-days" class="form-control" min="1" value="7" required>
+              <small class="text-muted">Due date is auto-calculated when the task is unlocked for an intern.</small>
             </div>
           </div>
 
           <div class="form-group">
             <label class="form-label" for="task-name">Task Title <span>*</span></label>
-            <input type="text" id="task-name" class="form-control" placeholder="e.g. Environment Setup & Tooling" required>
+            <input type="text" id="task-name" class="form-control" placeholder="e.g. Environment Setup & Tooling"
+              required>
           </div>
 
           <div class="form-group">
             <label class="form-label" for="task-description">Task Description <span>*</span></label>
-            <textarea id="task-description" class="form-control" rows="4" placeholder="Detailed instructions for the intern..." required></textarea>
+            <textarea id="task-description" class="form-control" rows="4"
+              placeholder="Detailed instructions for the intern..." required></textarea>
           </div>
         </div>
         <div class="modal-footer">
@@ -123,14 +131,16 @@
     </div>
   </div>
 
+  <script src="../js/api.js"></script>
   <script src="../js/db.js"></script>
   <script src="../js/auth.js"></script>
   <script src="../js/utils.js"></script>
   <script>
-    Auth.requireRole('manager');
-    const user = Auth.currentUser();
+    let user;
 
-    document.addEventListener('DOMContentLoaded', () => {
+    document.addEventListener('DOMContentLoaded', async () => {
+      if (!await Auth.requireRole('manager')) return;
+      user = Auth.currentUser();
       document.getElementById('user-name-label').textContent = user.name;
       document.getElementById('user-avatar-slot').innerHTML = Utils.avatarHtml(user, 36);
       renderTasks();
@@ -148,10 +158,10 @@
           <td><strong>Task ${t.taskNumber}</strong></td>
           <td><span style="font-weight: 600; color: var(--text-primary);">${Utils.escHtml(t.title)}</span></td>
           <td style="max-width: 320px;"><span style="font-size:0.82rem; color: var(--text-secondary); display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">${Utils.escHtml(t.description)}</span></td>
-          <td>${t.dueDate ? Utils.formatDate(t.dueDate) : '<span class="text-muted">—</span>'}</td>
+          <td>${t.due ? `${t.due} days` : '<span class="text-muted">7 days</span>'}</td>
           <td style="text-align: right;">
-            <button onclick="openEditTaskModal('${t.id}')" class="btn btn-ghost btn-sm btn-icon" title="Edit Task"><i class="fa-solid fa-pen-to-square"></i></button>
-            <button onclick="deleteTask('${t.id}')" class="btn btn-ghost btn-sm btn-icon" style="color: var(--danger);" title="Delete Task"><i class="fa-solid fa-trash"></i></button>
+            <button onclick="openEditTaskModal('${t.id}')" class="btn btn-ghost btn-sm btn-icon" style="color: var(--text-primary);" title="Edit Task"><i class="fa-solid fa-pen-to-square"></i></button>
+            <button onclick="deleteTask('${t.id}')" class="btn btn-ghost btn-sm btn-icon" style="color: var(--text-primary);" title="Delete Task"><i class="fa-solid fa-trash"></i></button>
           </td>
         </tr>
       `).join('');
@@ -179,12 +189,12 @@
       document.querySelectorAll('#tasks-table-body tr').forEach(tr => tr.style.borderTop = '');
     }
 
-    function handleDrop(e) {
+    async function handleDrop(e) {
       e.preventDefault();
       const targetRow = e.currentTarget;
       targetRow.style.borderTop = '';
       const targetId = targetRow.getAttribute('data-id');
-      
+
       if (!draggedRowId || draggedRowId === targetId) return;
 
       const tasks = DB.Tasks.all();
@@ -196,15 +206,15 @@
       const [draggedTask] = tasks.splice(draggedIndex, 1);
       tasks.splice(targetIndex, 0, draggedTask);
 
-      const orderedIds = [];
-      tasks.forEach((task, idx) => {
-        orderedIds.push(task.id);
-        DB.Tasks.update(task.id, { order: idx + 1, taskNumber: idx + 1 });
-      });
+      const orderedIds = tasks.map(t => t.id);
 
-      DB.Tasks.reorder(orderedIds);
-      Utils.toast('Tasks reordered successfully!', 'success');
-      renderTasks();
+      try {
+        await DB.Tasks.reorder(orderedIds);
+        Utils.toast('Tasks reordered successfully!', 'success');
+        renderTasks();
+      } catch (err) {
+        Utils.toast(err.message, 'error');
+      }
     }
 
     function openAddTaskModal() {
@@ -213,7 +223,7 @@
       document.getElementById('task-number').value = DB.Tasks.all().length + 1;
       document.getElementById('task-name').value = '';
       document.getElementById('task-description').value = '';
-      document.getElementById('task-due-date').value = '';
+      document.getElementById('task-due-days').value = '7';
       document.getElementById('task-modal').classList.add('open');
     }
 
@@ -226,7 +236,7 @@
       document.getElementById('task-number').value = task.taskNumber;
       document.getElementById('task-name').value = task.title;
       document.getElementById('task-description').value = task.description;
-      document.getElementById('task-due-date').value = task.dueDate || '';
+      document.getElementById('task-due-days').value = task.due || 7;
       document.getElementById('task-modal').classList.add('open');
     }
 
@@ -234,33 +244,40 @@
       document.getElementById('task-modal').classList.remove('open');
     }
 
-    function saveTask(e) {
+    async function saveTask(e) {
       e.preventDefault();
       const id = document.getElementById('task-id').value;
       const num = parseInt(document.getElementById('task-number').value);
       const title = document.getElementById('task-name').value.trim();
       const description = document.getElementById('task-description').value.trim();
-      const dueDate = document.getElementById('task-due-date').value;
+      const due = parseInt(document.getElementById('task-due-days').value, 10) || 7;
 
-      if (id) {
-        DB.Tasks.update(id, { taskNumber: num, title, description, dueDate });
-        Utils.toast(`Task ${num} updated successfully!`, 'success');
-      } else {
-        DB.Tasks.create({ taskNumber: num, title, description, dueDate, order: num });
-        Utils.toast(`Task ${num} created!`, 'success');
+      try {
+        if (id) {
+          await DB.Tasks.update(id, { taskNumber: num, title, description, due });
+          Utils.toast(`Task ${num} updated successfully!`, 'success');
+        } else {
+          await DB.Tasks.create({ taskNumber: num, title, description, due, order: num });
+          Utils.toast(`Task ${num} created!`, 'success');
+        }
+        closeTaskModal();
+        renderTasks();
+      } catch (err) {
+        Utils.toast(err.message, 'error');
       }
-
-      closeTaskModal();
-      renderTasks();
     }
 
-    function deleteTask(id) {
+    async function deleteTask(id) {
       const task = DB.Tasks.find(id);
       if (!task) return;
       if (confirm(`Are you sure you want to delete Task ${task.taskNumber}: "${task.title}"?`)) {
-        DB.Tasks.delete(id);
-        Utils.toast(`Task ${task.taskNumber} deleted.`, 'warning');
-        renderTasks();
+        try {
+          await DB.Tasks.delete(id);
+          Utils.toast(`Task ${task.taskNumber} deleted.`, 'warning');
+          renderTasks();
+        } catch (err) {
+          Utils.toast(err.message, 'error');
+        }
       }
     }
 
@@ -269,4 +286,5 @@
     }
   </script>
 </body>
+
 </html>

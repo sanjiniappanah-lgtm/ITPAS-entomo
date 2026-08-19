@@ -1,23 +1,26 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Interns Directory — ITPAS Manager</title>
+  <title>Interns Directory - InternSpect</title>
   <link rel="stylesheet" href="../css/main.css">
   <link rel="stylesheet" href="../css/components.css">
   <link rel="stylesheet" href="../css/dark-mode.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel='stylesheet' href='https://cdn-uicons.flaticon.com/uicons-bold-straight/css/uicons-bold-straight.css'>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 </head>
+
 <body>
   <div class="app-shell">
     <aside class="sidebar" id="sidebar">
       <div class="sidebar-brand">
-        <div class="sidebar-brand-icon"><i class="fa-solid fa-graduation-cap"></i></div>
+        <div class="sidebar-brand-icon"><i class="fi fi-bs-rocket-lunch"></i></div>
         <div class="sidebar-brand-text">
-          <div class="brand-name">ITPAS</div>
+          <div class="brand-name">InternSpect</div>
           <div class="brand-sub">Manager Portal</div>
         </div>
       </div>
@@ -34,14 +37,15 @@
         <a href="interns.html" class="nav-item active"><i class="fa-solid fa-users nav-icon"></i> Interns</a>
         <a href="add-intern.html" class="nav-item"><i class="fa-solid fa-user-plus nav-icon"></i> Register Intern</a>
         <a href="tasks.html" class="nav-item"><i class="fa-solid fa-list-check nav-icon"></i> Task Management</a>
-        <a href="review-queue.html" class="nav-item"><i class="fa-solid fa-clock-rotate-left nav-icon"></i> Review Queue</a>
-        <a href="progress.html" class="nav-item"><i class="fa-solid fa-chart-line nav-icon"></i> Progress Dashboard</a>
+        <a href="review-queue.html" class="nav-item"><i class="fa-solid fa-clock-rotate-left nav-icon"></i> Review
+          Queue</a>
         <a href="reports.html" class="nav-item"><i class="fa-solid fa-file-lines nav-icon"></i> Daily Reports</a>
         <div class="nav-section-label">Account</div>
         <a href="profile.html" class="nav-item"><i class="fa-solid fa-user-gear nav-icon"></i> Profile Settings</a>
       </nav>
       <div class="sidebar-footer">
-        <a href="#" class="nav-item" onclick="Auth.logout()"><i class="fa-solid fa-right-from-bracket nav-icon"></i> Logout</a>
+        <a href="#" class="nav-item" onclick="Auth.logout()"><i class="fa-solid fa-right-from-bracket nav-icon"></i>
+          Logout</a>
       </div>
     </aside>
 
@@ -49,24 +53,46 @@
       <button class="hamburger-btn" onclick="toggleSidebar()"><i class="fa-solid fa-bars"></i></button>
       <div>
         <h1 class="topbar-title">Registered Interns</h1>
-        <div class="topbar-subtitle">Manage enrolled interns and monitor their automated progression</div>
+        <div class="topbar-subtitle">Manage enrolled interns and monitor their progression</div>
       </div>
       <div class="topbar-actions">
-        <button class="btn btn-success btn-sm" onclick="Exporter.exportAllInternsExcel()">
-          <i class="fa-solid fa-file-excel"></i> Export Excel
-        </button>
-        <a href="add-intern.html" class="btn btn-primary btn-sm">
-          <i class="fa-solid fa-user-plus"></i> Register Intern
-        </a>
       </div>
     </header>
 
     <main class="main-content">
       <!-- Search & Filters -->
-      <div class="search-filter-bar">
-        <div class="search-box">
-          <i class="fa-solid fa-magnifying-glass search-icon"></i>
-          <input type="text" id="search-input" class="form-control" placeholder="Search by intern name, email, university or course..." oninput="renderInterns()">
+      <div class="search-filter-bar"
+        style="display: flex; gap: 0.75rem; align-items: center; flex-wrap: wrap; width: 100%;">
+        <!-- Intern Searchable Dropdown -->
+        <div class="custom-dropdown" id="intern-dropdown-container"
+          style="position: relative; flex: 1; max-width: 400px;">
+          <input type="hidden" id="filter-intern" value="all" onchange="renderInterns()">
+          <button id="intern-dropdown-btn" class="btn-primary"
+            style="width: 100%; padding: 0.6rem 2.2rem 0.6rem 1rem; border: none; background-image: url(&quot;data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='%23ffffff'%3E%3Cpath d='M7.247 11.14L2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z'/%3E%3C/svg%3E&quot;), linear-gradient(135deg, var(--primary), var(--primary-dark)); background-repeat: no-repeat; background-position: right 0.8rem center, center; background-size: 10px, auto; color: #ffffff; text-align: left; border-radius: var(--radius-sm); font-size: 0.9rem; font-weight: 600; cursor: pointer; box-shadow: 0 4px 10px rgba(0,0,0,0.1);"
+            onclick="toggleDropdown(event, 'intern-dropdown-menu')">
+            All Interns
+          </button>
+          <div id="intern-dropdown-menu" class="dropdown-menu"
+            style="display: none; position: absolute; top: 100%; left: 0; right: 0; z-index: 100; background: var(--bg-surface); border: 2px solid var(--border-light); border-radius: var(--radius-sm); margin-top: 4px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); overflow: hidden;">
+            <div
+              style="padding: 0.5rem; border-bottom: 1px solid var(--border-light); background: var(--bg-surface-2);">
+              <input type="text" id="intern-search-input" placeholder="Search intern name..."
+                style="width: 100%; padding: 0.5rem; border: 1px solid var(--border-light); border-radius: var(--radius-sm); font-size: 0.85rem; outline: none; color: var(--text-primary); background: var(--bg-surface);"
+                oninput="filterDropdownList('intern-search-input', 'intern-dropdown-list')"
+                onclick="event.stopPropagation()">
+            </div>
+            <div id="intern-dropdown-list" style="max-height: 250px; overflow-y: auto; padding: 0.25rem 0;">
+              <!-- Populated by JS -->
+            </div>
+          </div>
+        </div>
+        <div style="margin-left: auto; display: flex; gap: 0.5rem;">
+          <button class="btn btn-success" onclick="Exporter.exportAllInternsExcel()">
+            <i class="fa-solid fa-file-excel"></i> Export Excel
+          </button>
+          <a href="add-intern.html" class="btn btn-primary">
+            <i class="fa-solid fa-user-plus"></i> Register Intern
+          </a>
         </div>
       </div>
 
@@ -77,25 +103,62 @@
     </main>
   </div>
 
+  <script src="../js/api.js"></script>
   <script src="../js/db.js"></script>
   <script src="../js/auth.js"></script>
   <script src="../js/automation.js"></script>
   <script src="../js/utils.js"></script>
   <script src="../js/export.js"></script>
   <script>
-    Auth.requireRole('manager');
-    const user = Auth.currentUser();
+    let user;
     let currentPage = 1;
 
-    document.addEventListener('DOMContentLoaded', () => {
+    document.addEventListener('DOMContentLoaded', async () => {
+      if (!await Auth.requireRole('manager')) return;
+      user = Auth.currentUser();
       document.getElementById('user-name-label').textContent = user.name;
       document.getElementById('user-avatar-slot').innerHTML = Utils.avatarHtml(user, 36);
+      populateFilters();
       renderInterns();
     });
 
+    function filterDropdownList(inputId, listId) {
+      const q = document.getElementById(inputId).value.toLowerCase();
+      const items = document.getElementById(listId).querySelectorAll('.dropdown-item');
+      items.forEach(item => {
+        const text = item.textContent.toLowerCase();
+        item.style.display = text.includes(q) ? 'block' : 'none';
+      });
+    }
+
+    function selectDropdownOption(hiddenInputId, btnId, value, text) {
+      document.getElementById(hiddenInputId).value = value;
+      document.getElementById(btnId).textContent = text;
+      document.querySelectorAll('.dropdown-menu').forEach(m => m.style.display = 'none');
+      const event = new Event('change');
+      document.getElementById(hiddenInputId).dispatchEvent(event);
+    }
+
+    function populateFilters() {
+      const internList = document.getElementById('intern-dropdown-list');
+      internList.innerHTML = `<div class="dropdown-item" onclick="selectDropdownOption('filter-intern', 'intern-dropdown-btn', 'all', 'All Interns')">All Interns</div>`;
+
+      const interns = DB.Interns.allWithUsers();
+      interns.forEach(i => {
+        const div = document.createElement('div');
+        div.className = 'dropdown-item';
+        div.textContent = i.user.name;
+        div.onclick = () => selectDropdownOption('filter-intern', 'intern-dropdown-btn', i.id, i.user.name);
+        internList.appendChild(div);
+      });
+    }
+
     function renderInterns() {
-      const q = document.getElementById('search-input').value.trim();
-      const allInterns = Utils.searchInterns(q);
+      const filterIntern = document.getElementById('filter-intern').value;
+      let allInterns = DB.Interns.allWithUsers();
+      if (filterIntern !== 'all') {
+        allInterns = allInterns.filter(i => i.id === filterIntern);
+      }
       const grid = document.getElementById('interns-grid');
 
       if (!allInterns.length) {
@@ -103,7 +166,7 @@
           <div class="empty-state" style="grid-column: 1 / -1;">
             <div class="empty-state-icon"><i class="fa-solid fa-user-slash"></i></div>
             <h3>No Interns Found</h3>
-            <p>No intern matches your search query "${Utils.escHtml(q)}".</p>
+            <p>No intern selected.</p>
           </div>`;
         document.getElementById('pagination-container').innerHTML = '';
         return;
@@ -117,12 +180,27 @@
 
         return `
           <div class="intern-card">
-            <div class="intern-card-top">
+            <div class="intern-card-top" style="position: relative;">
               ${Utils.avatarHtml(intern.user, 50)}
-              <div>
+              <div style="flex: 1; padding-right: 2rem; word-break: break-word;">
                 <div class="intern-card-name">${Utils.escHtml(intern.user.name)}</div>
                 <div class="intern-card-role"><i class="fa-solid fa-graduation-cap"></i> ${Utils.escHtml(intern.university || 'N/A')}</div>
                 <div class="intern-card-role" style="font-size:0.7rem;"><i class="fa-solid fa-book"></i> ${Utils.escHtml(intern.course || 'N/A')}</div>
+              </div>
+              <div class="dropdown" style="position: absolute; top: 0; right: 0;">
+                <button onclick="toggleDropdown(event, 'menu-${intern.id}')" class="btn btn-ghost btn-sm btn-icon" title="More Options"><i class="fa-solid fa-ellipsis-vertical"></i></button>
+                <div id="menu-${intern.id}" class="dropdown-menu" style="display: none; position: absolute; right: 0; top: 100%; background: var(--bg-surface); border: 1px solid var(--border-light); border-radius: var(--radius-md); box-shadow: var(--shadow-md); z-index: 10; min-width: 180px; padding: 0.5rem 0;">
+                  <button onclick="toggleInternStatus('${intern.id}', '${intern.user.status}')" style="display: block; width: 100%; text-align: left; padding: 0.5rem 1rem; background: none; border: none; cursor: pointer; color: var(--text-primary); font-family: inherit; font-size: 0.875rem;">
+                    <i class="fa-solid ${intern.user.status === 'active' ? 'fa-toggle-on' : 'fa-toggle-off'}" style="width: 20px; color: ${intern.user.status === 'active' ? 'var(--success)' : 'var(--text-muted)'};"></i> ${intern.user.status === 'active' ? 'Deactivate' : 'Activate'}
+                  </button>
+                  <button onclick="resetPassword('${intern.id}')" style="display: block; width: 100%; text-align: left; padding: 0.5rem 1rem; background: none; border: none; cursor: pointer; color: var(--text-primary); font-family: inherit; font-size: 0.875rem;">
+                    <i class="fa-solid fa-key" style="width: 20px;"></i> Reset Password
+                  </button>
+                  <hr style="margin: 0.25rem 0; border: none; border-bottom: 1px solid var(--border-light);">
+                  <button onclick="deleteIntern('${intern.id}')" style="display: block; width: 100%; text-align: left; padding: 0.5rem 1rem; background: none; border: none; cursor: pointer; color: var(--text-primary); font-family: inherit; font-size: 0.875rem;">
+                    <i class="fa-solid fa-trash" style="width: 20px;"></i> Delete
+                  </button>
+                </div>
               </div>
             </div>
 
@@ -171,6 +249,67 @@
     function toggleSidebar() {
       document.getElementById('sidebar').classList.toggle('open');
     }
+
+    document.addEventListener('click', function (e) {
+      if (!e.target.closest('.dropdown') && !e.target.closest('.custom-dropdown')) {
+        document.querySelectorAll('.dropdown-menu').forEach(menu => {
+          menu.style.display = 'none';
+        });
+      }
+    });
+
+    function toggleDropdown(e, id) {
+      e.stopPropagation();
+      const menu = document.getElementById(id);
+      const isVisible = menu.style.display === 'block';
+      document.querySelectorAll('.dropdown-menu').forEach(m => m.style.display = 'none');
+      if (!isVisible) {
+        menu.style.display = 'block';
+        const input = menu.querySelector('input[type="text"]');
+        if (input) input.focus();
+      }
+    }
+
+    async function toggleInternStatus(internId, currentStatus) {
+      const newStatus = currentStatus === 'active' ? 'inactive' : 'active';
+      if (!confirm(`Are you sure you want to change this intern's status to ${newStatus}?`)) {
+        return;
+      }
+      try {
+        await API.updateInternStatus(internId, newStatus);
+        alert(`Intern status updated to ${newStatus}.`);
+        await DB.reload();
+        renderInterns();
+      } catch (err) {
+        alert(err.message || 'Failed to update intern status.');
+      }
+    }
+
+    async function deleteIntern(internId) {
+      if (!confirm('Are you sure you want to delete this intern? This action cannot be undone and will delete all their submissions and reports.')) {
+        return;
+      }
+      try {
+        await API.deleteIntern(internId);
+        alert('Intern deleted successfully.');
+        await DB.reload();
+        renderInterns();
+      } catch (err) {
+        alert(err.message || 'Failed to delete intern.');
+      }
+    }
+
+    async function resetPassword(internId) {
+      const newPassword = prompt('Enter new password for this intern:');
+      if (!newPassword) return;
+      try {
+        await API.resetInternPassword(internId, newPassword);
+        alert('Password reset successfully.');
+      } catch (err) {
+        alert(err.message || 'Failed to reset password.');
+      }
+    }
   </script>
 </body>
+
 </html>

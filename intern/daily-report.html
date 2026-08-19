@@ -1,21 +1,32 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Daily Report Form — ITPAS Intern</title>
+  <title>Daily Report Form - InternSpect</title>
   <link rel="stylesheet" href="../css/main.css">
   <link rel="stylesheet" href="../css/components.css">
   <link rel="stylesheet" href="../css/dark-mode.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel='stylesheet' href='https://cdn-uicons.flaticon.com/uicons-bold-straight/css/uicons-bold-straight.css'>
+
+  <style>
+    /* Make date picker icon white */
+    #report-date::-webkit-calendar-picker-indicator {
+      filter: invert(1);
+      cursor: pointer;
+    }
+  </style>
 </head>
+
 <body>
   <div class="app-shell">
     <aside class="sidebar" id="sidebar">
       <div class="sidebar-brand">
-        <div class="sidebar-brand-icon"><i class="fa-solid fa-graduation-cap"></i></div>
+        <div class="sidebar-brand-icon"><i class="fi fi-bs-rocket-lunch"></i></i></div>
         <div class="sidebar-brand-text">
-          <div class="brand-name">ITPAS</div>
+          <div class="brand-name">InternSpect</div>
           <div class="brand-sub">Intern Portal</div>
         </div>
       </div>
@@ -30,13 +41,16 @@
         <div class="nav-section-label">Main Menu</div>
         <a href="dashboard.html" class="nav-item"><i class="fa-solid fa-house nav-icon"></i> My Dashboard</a>
         <a href="tasks.html" class="nav-item"><i class="fa-solid fa-list-check nav-icon"></i> My Tasks</a>
-        <a href="daily-report.html" class="nav-item active"><i class="fa-solid fa-pen-to-square nav-icon"></i> Submit Daily Report</a>
-        <a href="reports.html" class="nav-item"><i class="fa-solid fa-clock-rotate-left nav-icon"></i> My Daily Reports</a>
+        <a href="daily-report.html" class="nav-item active"><i class="fa-solid fa-pen-to-square nav-icon"></i> Submit
+          Daily Report</a>
+        <a href="reports.html" class="nav-item"><i class="fa-solid fa-clock-rotate-left nav-icon"></i> My Daily
+          Reports</a>
         <div class="nav-section-label">Account</div>
         <a href="profile.html" class="nav-item"><i class="fa-solid fa-user nav-icon"></i> My Profile</a>
       </nav>
       <div class="sidebar-footer">
-        <a href="#" class="nav-item" onclick="Auth.logout()"><i class="fa-solid fa-right-from-bracket nav-icon"></i> Logout</a>
+        <a href="#" class="nav-item" onclick="Auth.logout()"><i class="fa-solid fa-right-from-bracket nav-icon"></i>
+          Logout</a>
       </div>
     </aside>
 
@@ -57,50 +71,66 @@
                 <i class="fa-solid fa-calendar-day" style="color: var(--primary);"></i> Daily Entry Log
               </h3>
               <div class="form-group" style="margin: 0; min-width: 180px;">
-                <input type="date" id="report-date" class="form-control" required>
+                <input type="date" id="report-date" class="btn-primary"
+                  style="width: 100%; padding: 0.6rem 1rem; border: none; background: linear-gradient(135deg, var(--primary), var(--primary-dark)); color: #ffffff; border-radius: var(--radius-sm); font-size: 0.9rem; font-weight: 600; cursor: pointer; box-shadow: 0 4px 10px rgba(0,0,0,0.1); outline: none; font-family: inherit;"
+                  required>
               </div>
             </div>
 
             <!-- Section A -->
             <div class="form-group">
-              <label class="form-label"><span class="section-letter" style="display:inline-flex; width:20px; height:20px; font-size:0.65rem; margin-right:4px;">A</span> Tasks Assigned <span>*</span></label>
-              <textarea id="sec-a" class="form-control" rows="3" placeholder="List tasks or assignments given to you today..." required></textarea>
+              <label class="report-section-label"><span class="section-letter">A</span> Tasks Assigned <span
+                  style="color: var(--danger); margin-left: 2px;">*</span></label>
+              <textarea id="sec-a" class="form-control" rows="3"
+                placeholder="List tasks or assignments given to you today..." required></textarea>
             </div>
 
             <!-- Section B -->
             <div class="form-group">
-              <label class="form-label"><span class="section-letter" style="display:inline-flex; width:20px; height:20px; font-size:0.65rem; margin-right:4px;">B</span> Activities Completed <span>*</span></label>
-              <textarea id="sec-b" class="form-control" rows="3" placeholder="Describe the key activities you completed today..." required></textarea>
+              <label class="report-section-label"><span class="section-letter">B</span> Activities Completed <span
+                  style="color: var(--danger); margin-left: 2px;">*</span></label>
+              <textarea id="sec-b" class="form-control" rows="3"
+                placeholder="Describe the key activities you completed today..." required></textarea>
             </div>
 
             <!-- Section C -->
             <div class="form-group">
-              <label class="form-label"><span class="section-letter" style="display:inline-flex; width:20px; height:20px; font-size:0.65rem; margin-right:4px;">C</span> Key Responsibilities Held</label>
-              <textarea id="sec-c" class="form-control" rows="3" placeholder="Detail any responsibilities or leadership items handled..."></textarea>
+              <label class="report-section-label"><span class="section-letter">C</span> Key Responsibilities
+                Held</label>
+              <textarea id="sec-c" class="form-control" rows="3"
+                placeholder="Detail any responsibilities or leadership items handled..."></textarea>
             </div>
 
             <!-- Section D -->
             <div class="form-group">
-              <label class="form-label"><span class="section-letter" style="display:inline-flex; width:20px; height:20px; font-size:0.65rem; margin-right:4px;">D</span> What I Gained / Learned <span>*</span></label>
-              <textarea id="sec-d" class="form-control" rows="3" placeholder="What knowledge, skills, or insights did you gain today?" required></textarea>
+              <label class="report-section-label"><span class="section-letter">D</span> What I Gained / Learned <span
+                  style="color: var(--danger); margin-left: 2px;">*</span></label>
+              <textarea id="sec-d" class="form-control" rows="3"
+                placeholder="What knowledge, skills, or insights did you gain today?" required></textarea>
             </div>
 
             <!-- Section E -->
             <div class="form-group">
-              <label class="form-label"><span class="section-letter" style="display:inline-flex; width:20px; height:20px; font-size:0.65rem; margin-right:4px;">E</span> Improvements / Targets / Suggestions</label>
-              <textarea id="sec-e" class="form-control" rows="3" placeholder="Area of improvement, targets for tomorrow, or recommendations..."></textarea>
+              <label class="report-section-label"><span class="section-letter">E</span> Improvements / Targets /
+                Suggestions</label>
+              <textarea id="sec-e" class="form-control" rows="3"
+                placeholder="Area of improvement, targets for tomorrow, or recommendations..."></textarea>
             </div>
 
             <!-- Section F -->
             <div class="form-group">
-              <label class="form-label" style="color: var(--danger);"><span class="section-letter" style="display:inline-flex; width:20px; height:20px; font-size:0.65rem; margin-right:4px; background:var(--danger);">F</span> Problems Faced & Challenges</label>
-              <textarea id="sec-f" class="form-control" rows="3" placeholder="Describe any technical issues, blockers, or problems faced..." style="border-color: rgba(244,63,94,0.4);"></textarea>
+              <label class="report-section-label"><span class="section-letter">F</span> Problems Faced &
+                Challenges</label>
+              <textarea id="sec-f" class="form-control" rows="3"
+                placeholder="Describe any technical issues, blockers, or problems faced..."></textarea>
             </div>
 
             <!-- Section G (Optional) -->
             <div class="form-group">
-              <label class="form-label"><span class="section-letter" style="display:inline-flex; width:20px; height:20px; font-size:0.65rem; margin-right:4px; background:var(--primary);">G</span> Additional Questions / Notes for Manager (Optional)</label>
-              <textarea id="sec-g" class="form-control" rows="3" placeholder="Any questions, doubts, or additional feedback for your manager?"></textarea>
+              <label class="report-section-label"><span class="section-letter">G</span> Additional Questions / Notes for
+                Manager (Optional)</label>
+              <textarea id="sec-g" class="form-control" rows="3"
+                placeholder="Any questions, doubts, or additional feedback for your manager?"></textarea>
             </div>
 
             <div style="display: flex; justify-content: flex-end; gap: 1rem; margin-top: 1.5rem;">
@@ -115,46 +145,51 @@
     </main>
   </div>
 
+  <script src="../js/api.js"></script>
   <script src="../js/db.js"></script>
   <script src="../js/auth.js"></script>
   <script src="../js/notifications.js"></script>
   <script src="../js/utils.js"></script>
   <script>
-    Auth.requireRole('intern');
-    const user = Auth.currentUser();
-    const intern = DB.Interns.findByUserId(user.id);
+    let user, intern;
 
-    document.addEventListener('DOMContentLoaded', () => {
+    document.addEventListener('DOMContentLoaded', async () => {
+      if (!await Auth.requireRole('intern')) return;
+      user = Auth.currentUser();
+      intern = DB.Interns.findByUserId(user.id);
       document.getElementById('user-name-label').textContent = user.name;
       document.getElementById('user-avatar-slot').innerHTML = Utils.avatarHtml(user, 36);
-
-      // Default to today
       document.getElementById('report-date').value = Utils.today();
     });
 
-    function handleReportSubmit(e) {
+    async function handleReportSubmit(e) {
       e.preventDefault();
 
-      const report = DB.DailyReports.create({
-        internId: intern.id,
-        date: document.getElementById('report-date').value,
-        tasksAssigned: document.getElementById('sec-a').value.trim(),
-        activities: document.getElementById('sec-b').value.trim(),
-        responsibilities: document.getElementById('sec-c').value.trim(),
-        gained: document.getElementById('sec-d').value.trim(),
-        improvement: document.getElementById('sec-e').value.trim(),
-        problemsFaced: document.getElementById('sec-f').value.trim(),
-        additionalQuestions: document.getElementById('sec-g').value.trim(),
-      });
+      const submitBtn = e.target.querySelector('button[type="submit"]');
+      submitBtn.disabled = true;
 
-      // Notify managers
-      NotifyEvent.dailyReportSubmitted(user.name);
+      try {
+        await DB.DailyReports.create({
+          internId: intern.id,
+          date: document.getElementById('report-date').value,
+          tasksAssigned: document.getElementById('sec-a').value.trim(),
+          activities: document.getElementById('sec-b').value.trim(),
+          responsibilities: document.getElementById('sec-c').value.trim(),
+          gained: document.getElementById('sec-d').value.trim(),
+          improvement: document.getElementById('sec-e').value.trim(),
+          problemsFaced: document.getElementById('sec-f').value.trim(),
+          additionalQuestions: document.getElementById('sec-g').value.trim(),
+        });
 
-      Utils.toast('📋 Daily Report successfully logged and sent to manager!', 'success');
+        Utils.toast('📋 Daily Report successfully logged and sent to manager!', 'success');
 
-      setTimeout(() => {
-        window.location.href = 'reports.html';
-      }, 1000);
+        setTimeout(() => {
+          window.location.href = 'reports.html';
+        }, 1000);
+      } catch (err) {
+        Utils.toast(err.message || 'Failed to submit report', 'error');
+        submitBtn.disabled = false;
+      }
     }
 
     function toggleSidebar() {
@@ -162,4 +197,5 @@
     }
   </script>
 </body>
+
 </html>

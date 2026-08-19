@@ -1,21 +1,24 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Manager Profile Settings — ITPAS</title>
+  <title>Manager Profile Settings - InternSpect</title>
   <link rel="stylesheet" href="../css/main.css">
   <link rel="stylesheet" href="../css/components.css">
   <link rel="stylesheet" href="../css/dark-mode.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel='stylesheet' href='https://cdn-uicons.flaticon.com/uicons-bold-straight/css/uicons-bold-straight.css'>
 </head>
+
 <body>
   <div class="app-shell">
     <aside class="sidebar" id="sidebar">
       <div class="sidebar-brand">
-        <div class="sidebar-brand-icon"><i class="fa-solid fa-graduation-cap"></i></div>
+        <div class="sidebar-brand-icon"><i class="fi fi-bs-rocket-lunch"></i></div>
         <div class="sidebar-brand-text">
-          <div class="brand-name">ITPAS</div>
+          <div class="brand-name">InternSpect</div>
           <div class="brand-sub">Manager Portal</div>
         </div>
       </div>
@@ -32,14 +35,16 @@
         <a href="interns.html" class="nav-item"><i class="fa-solid fa-users nav-icon"></i> Interns</a>
         <a href="add-intern.html" class="nav-item"><i class="fa-solid fa-user-plus nav-icon"></i> Register Intern</a>
         <a href="tasks.html" class="nav-item"><i class="fa-solid fa-list-check nav-icon"></i> Task Management</a>
-        <a href="review-queue.html" class="nav-item"><i class="fa-solid fa-clock-rotate-left nav-icon"></i> Review Queue</a>
-        <a href="progress.html" class="nav-item"><i class="fa-solid fa-chart-line nav-icon"></i> Progress Dashboard</a>
+        <a href="review-queue.html" class="nav-item"><i class="fa-solid fa-clock-rotate-left nav-icon"></i> Review
+          Queue</a>
         <a href="reports.html" class="nav-item"><i class="fa-solid fa-file-lines nav-icon"></i> Daily Reports</a>
         <div class="nav-section-label">Account</div>
-        <a href="profile.html" class="nav-item active"><i class="fa-solid fa-user-gear nav-icon"></i> Profile Settings</a>
+        <a href="profile.html" class="nav-item active"><i class="fa-solid fa-user-gear nav-icon"></i> Profile
+          Settings</a>
       </nav>
       <div class="sidebar-footer">
-        <a href="#" class="nav-item" onclick="Auth.logout()"><i class="fa-solid fa-right-from-bracket nav-icon"></i> Logout</a>
+        <a href="#" class="nav-item" onclick="Auth.logout()"><i class="fa-solid fa-right-from-bracket nav-icon"></i>
+          Logout</a>
       </div>
     </aside>
 
@@ -90,12 +95,14 @@
               </div>
               <div class="form-group">
                 <label class="form-label" for="profile-photo">Profile Photo</label>
-                <input type="file" id="profile-photo" class="form-control" accept="image/*" onchange="updatePhotoPreview(this)">
+                <input type="file" id="profile-photo" class="form-control" accept="image/*"
+                  onchange="updatePhotoPreview(this)">
               </div>
             </div>
 
             <div style="display: flex; justify-content: flex-end;">
-              <button type="submit" class="btn btn-primary"><i class="fa-solid fa-floppy-disk"></i> Save Profile Details</button>
+              <button type="submit" class="btn btn-primary"><i class="fa-solid fa-floppy-disk"></i> Save Profile
+                Details</button>
             </div>
           </form>
         </div>
@@ -108,12 +115,14 @@
           <form id="security-form" onsubmit="changePassword(event)">
             <div class="form-group">
               <label class="form-label" for="new-password">New Password <span>*</span></label>
-              <input type="password" id="new-password" class="form-control" placeholder="••••••••" required minlength="6">
+              <input type="password" id="new-password" class="form-control" placeholder="••••••••" required
+                minlength="6">
             </div>
 
             <div class="form-group">
               <label class="form-label" for="confirm-password">Confirm New Password <span>*</span></label>
-              <input type="password" id="confirm-password" class="form-control" placeholder="••••••••" required minlength="6">
+              <input type="password" id="confirm-password" class="form-control" placeholder="••••••••" required
+                minlength="6">
             </div>
 
             <div style="display: flex; justify-content: flex-end;">
@@ -125,15 +134,18 @@
     </main>
   </div>
 
+  <script src="../js/api.js"></script>
   <script src="../js/db.js"></script>
   <script src="../js/auth.js"></script>
   <script src="../js/utils.js"></script>
   <script>
-    Auth.requireRole('manager');
-    let currentUser = Auth.currentUser();
-    let newPhotoBase64 = currentUser.photo || '';
+    let currentUser;
+    let newPhotoBase64 = '';
 
-    document.addEventListener('DOMContentLoaded', () => {
+    document.addEventListener('DOMContentLoaded', async () => {
+      if (!await Auth.requireRole('manager')) return;
+      currentUser = Auth.currentUser();
+      newPhotoBase64 = currentUser.photo || '';
       loadProfileData();
     });
 
@@ -158,18 +170,22 @@
       }
     }
 
-    function saveProfile(e) {
+    async function saveProfile(e) {
       e.preventDefault();
       const name = document.getElementById('profile-name').value.trim();
       const email = document.getElementById('profile-email').value.trim();
       const phone = document.getElementById('profile-phone').value.trim();
 
-      DB.Users.update(currentUser.id, { name, email, phone, photo: newPhotoBase64 });
-      Utils.toast('Profile information updated successfully!', 'success');
-      loadProfileData();
+      try {
+        await DB.Users.update(currentUser.id, { name, email, phone, photo: newPhotoBase64 });
+        Utils.toast('Profile information updated successfully!', 'success');
+        loadProfileData();
+      } catch (err) {
+        Utils.toast(err.message || 'Update failed', 'error');
+      }
     }
 
-    function changePassword(e) {
+    async function changePassword(e) {
       e.preventDefault();
       const newPass = document.getElementById('new-password').value;
       const confPass = document.getElementById('confirm-password').value;
@@ -179,9 +195,13 @@
         return;
       }
 
-      DB.Users.update(currentUser.id, { password: newPass });
-      Utils.toast('Password updated successfully!', 'success');
-      document.getElementById('security-form').reset();
+      try {
+        await DB.Users.update(currentUser.id, { password: newPass });
+        Utils.toast('Password updated successfully!', 'success');
+        document.getElementById('security-form').reset();
+      } catch (err) {
+        Utils.toast(err.message || 'Password update failed', 'error');
+      }
     }
 
     function toggleSidebar() {
@@ -189,4 +209,5 @@
     }
   </script>
 </body>
+
 </html>

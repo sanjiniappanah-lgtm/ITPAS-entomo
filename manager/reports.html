@@ -1,21 +1,31 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Intern Daily Reports — ITPAS Manager</title>
+  <title>Intern Daily Reports - InternSpect</title>
   <link rel="stylesheet" href="../css/main.css">
   <link rel="stylesheet" href="../css/components.css">
   <link rel="stylesheet" href="../css/dark-mode.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel='stylesheet' href='https://cdn-uicons.flaticon.com/uicons-bold-straight/css/uicons-bold-straight.css'>
+  <style>
+    /* Make date picker icon white */
+    #date-filter::-webkit-calendar-picker-indicator {
+      filter: invert(1);
+      cursor: pointer;
+    }
+  </style>
 </head>
+
 <body>
   <div class="app-shell">
     <aside class="sidebar" id="sidebar">
       <div class="sidebar-brand">
-        <div class="sidebar-brand-icon"><i class="fa-solid fa-graduation-cap"></i></div>
+        <div class="sidebar-brand-icon"><i class="fi fi-bs-rocket-lunch"></i></div>
         <div class="sidebar-brand-text">
-          <div class="brand-name">ITPAS</div>
+          <div class="brand-name">InternSpect</div>
           <div class="brand-sub">Manager Portal</div>
         </div>
       </div>
@@ -32,14 +42,15 @@
         <a href="interns.html" class="nav-item"><i class="fa-solid fa-users nav-icon"></i> Interns</a>
         <a href="add-intern.html" class="nav-item"><i class="fa-solid fa-user-plus nav-icon"></i> Register Intern</a>
         <a href="tasks.html" class="nav-item"><i class="fa-solid fa-list-check nav-icon"></i> Task Management</a>
-        <a href="review-queue.html" class="nav-item"><i class="fa-solid fa-clock-rotate-left nav-icon"></i> Review Queue</a>
-        <a href="progress.html" class="nav-item"><i class="fa-solid fa-chart-line nav-icon"></i> Progress Dashboard</a>
+        <a href="review-queue.html" class="nav-item"><i class="fa-solid fa-clock-rotate-left nav-icon"></i> Review
+          Queue</a>
         <a href="reports.html" class="nav-item active"><i class="fa-solid fa-file-lines nav-icon"></i> Daily Reports</a>
         <div class="nav-section-label">Account</div>
         <a href="profile.html" class="nav-item"><i class="fa-solid fa-user-gear nav-icon"></i> Profile Settings</a>
       </nav>
       <div class="sidebar-footer">
-        <a href="#" class="nav-item" onclick="Auth.logout()"><i class="fa-solid fa-right-from-bracket nav-icon"></i> Logout</a>
+        <a href="#" class="nav-item" onclick="Auth.logout()"><i class="fa-solid fa-right-from-bracket nav-icon"></i>
+          Logout</a>
       </div>
     </aside>
 
@@ -53,33 +64,105 @@
 
     <main class="main-content">
       <!-- Search & Date Filter -->
-      <div class="search-filter-bar">
-        <div class="search-box">
-          <i class="fa-solid fa-magnifying-glass search-icon"></i>
-          <input type="text" id="search-input" class="form-control" placeholder="Search by intern name or report content..." oninput="renderReports()">
+      <div class="search-filter-bar" style="display: flex; gap: 0.75rem; align-items: center; flex-wrap: wrap;">
+        <!-- Intern Searchable Dropdown -->
+        <div class="custom-dropdown" id="intern-dropdown-container"
+          style="position: relative; flex: 1; min-width: 200px; max-width: 400px;">
+          <input type="hidden" id="filter-intern" value="all" onchange="renderReports()">
+          <button id="intern-dropdown-btn" class="btn-primary"
+            style="width: 100%; padding: 0.6rem 2.2rem 0.6rem 1rem; border: none; background-image: url(&quot;data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='%23ffffff'%3E%3Cpath d='M7.247 11.14L2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z'/%3E%3C/svg%3E&quot;), linear-gradient(135deg, var(--primary), var(--primary-dark)); background-repeat: no-repeat; background-position: right 0.8rem center, center; background-size: 10px, auto; color: #ffffff; text-align: left; border-radius: var(--radius-sm); font-size: 0.9rem; font-weight: 600; cursor: pointer; box-shadow: 0 4px 10px rgba(0,0,0,0.1);"
+            onclick="toggleDropdown('intern-dropdown-menu')">
+            All Interns
+          </button>
+          <div id="intern-dropdown-menu" class="dropdown-menu"
+            style="display: none; position: absolute; top: 100%; left: 0; right: 0; z-index: 100; background: var(--bg-surface); border: 2px solid var(--border-light); border-radius: var(--radius-sm); margin-top: 4px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); overflow: hidden;">
+            <div
+              style="padding: 0.5rem; border-bottom: 1px solid var(--border-light); background: var(--bg-surface-2);">
+              <input type="text" id="intern-search-input" placeholder="Search intern name..."
+                style="width: 100%; padding: 0.5rem; border: 1px solid var(--border-light); border-radius: var(--radius-sm); font-size: 0.85rem; outline: none; color: var(--text-primary); background: var(--bg-surface);"
+                oninput="filterDropdownList('intern-search-input', 'intern-dropdown-list')"
+                onclick="event.stopPropagation()">
+            </div>
+            <div id="intern-dropdown-list" style="max-height: 250px; overflow-y: auto; padding: 0.25rem 0;">
+              <!-- Populated by JS -->
+            </div>
+          </div>
         </div>
-        <input type="date" id="date-filter" class="form-control" style="width: auto; min-width: 180px;" onchange="renderReports()">
+        <input type="date" id="date-filter" class="btn-primary"
+          style="width: auto; min-width: 180px; padding: 0.6rem 1rem; border: none; background: linear-gradient(135deg, var(--primary), var(--primary-dark)); color: #ffffff; border-radius: var(--radius-sm); font-size: 0.9rem; font-weight: 600; cursor: pointer; box-shadow: 0 4px 10px rgba(0,0,0,0.1); outline: none; font-family: inherit;"
+          onchange="renderReports()">
       </div>
 
       <div id="reports-container"></div>
     </main>
   </div>
 
+  <script src="../js/api.js"></script>
   <script src="../js/db.js"></script>
   <script src="../js/auth.js"></script>
   <script src="../js/utils.js"></script>
   <script>
-    Auth.requireRole('manager');
-    const user = Auth.currentUser();
+    let user;
 
-    document.addEventListener('DOMContentLoaded', () => {
+    document.addEventListener('DOMContentLoaded', async () => {
+      if (!await Auth.requireRole('manager')) return;
+      user = Auth.currentUser();
       document.getElementById('user-name-label').textContent = user.name;
       document.getElementById('user-avatar-slot').innerHTML = Utils.avatarHtml(user, 36);
+      populateFilters();
       renderReports();
     });
 
+    function toggleDropdown(menuId) {
+      const menu = document.getElementById(menuId);
+      const isVisible = menu.style.display === 'block';
+      document.querySelectorAll('.dropdown-menu').forEach(m => m.style.display = 'none');
+      if (!isVisible) {
+        menu.style.display = 'block';
+        const input = menu.querySelector('input[type="text"]');
+        if (input) input.focus();
+      }
+    }
+
+    document.addEventListener('click', (e) => {
+      if (!e.target.closest('.custom-dropdown')) {
+        document.querySelectorAll('.dropdown-menu').forEach(m => m.style.display = 'none');
+      }
+    });
+
+    function filterDropdownList(inputId, listId) {
+      const q = document.getElementById(inputId).value.toLowerCase();
+      const items = document.getElementById(listId).querySelectorAll('.dropdown-item');
+      items.forEach(item => {
+        const text = item.textContent.toLowerCase();
+        item.style.display = text.includes(q) ? 'block' : 'none';
+      });
+    }
+
+    function selectDropdownOption(hiddenInputId, btnId, value, text) {
+      document.getElementById(hiddenInputId).value = value;
+      document.getElementById(btnId).textContent = text;
+      document.querySelectorAll('.dropdown-menu').forEach(m => m.style.display = 'none');
+      const event = new Event('change');
+      document.getElementById(hiddenInputId).dispatchEvent(event);
+    }
+
+    function populateFilters() {
+      const internList = document.getElementById('intern-dropdown-list');
+      internList.innerHTML = `<div class="dropdown-item" onclick="selectDropdownOption('filter-intern', 'intern-dropdown-btn', 'all', 'All Interns')">All Interns</div>`;
+
+      const interns = DB.Interns.allWithUsers();
+      interns.forEach(i => {
+        const div = document.createElement('div');
+        div.className = 'dropdown-item';
+        div.textContent = i.user.name;
+        div.onclick = () => selectDropdownOption('filter-intern', 'intern-dropdown-btn', i.id, i.user.name);
+        internList.appendChild(div);
+      });
+    }
+
     function renderReports() {
-      const q = document.getElementById('search-input').value.trim().toLowerCase();
+      const filterIntern = document.getElementById('filter-intern').value;
       const selectedDate = document.getElementById('date-filter').value;
       const container = document.getElementById('reports-container');
 
@@ -89,14 +172,9 @@
         reports = reports.filter(r => r.date === selectedDate);
       }
 
-      // Filter by search query
-      reports = reports.filter(r => {
-        const intern = DB.Interns.find(r.internId);
-        const internUser = intern ? DB.Users.find(intern.userId) : null;
-        const nameMatch = internUser && internUser.name.toLowerCase().includes(q);
-        const contentMatch = (r.tasksAssigned + r.activities + r.gained + r.problemsFaced).toLowerCase().includes(q);
-        return !q || nameMatch || contentMatch;
-      });
+      if (filterIntern !== 'all') {
+        reports = reports.filter(r => r.internId === filterIntern);
+      }
 
       reports.sort((a, b) => new Date(b.submittedAt) - new Date(a.submittedAt));
 
@@ -124,7 +202,7 @@
                   <div class="report-submitter">Submitted by <strong>${internUser ? Utils.escHtml(internUser.name) : 'Intern'}</strong> • ${Utils.timeAgo(r.submittedAt)}</div>
                 </div>
               </div>
-              <button class="btn btn-ghost btn-sm"><i class="fa-solid fa-chevron-down"></i> Expand Report</button>
+              <button class="btn btn-primary btn-sm"><i class="fa-solid fa-chevron-down"></i> Expand Report</button>
             </div>
 
             <div class="report-body" id="report-${r.id}">
@@ -154,13 +232,13 @@
               </div>
 
               <div class="report-section">
-                <div class="report-section-label" style="color: var(--danger);"><span class="section-letter" style="background: var(--danger);">F</span> Problems Faced</div>
-                <div class="report-section-content" style="border-left: 3px solid var(--danger);">${Utils.escHtml(r.problemsFaced || '—')}</div>
+                <div class="report-section-label"><span class="section-letter">F</span> Problems Faced</div>
+                <div class="report-section-content">${Utils.escHtml(r.problemsFaced || '—')}</div>
               </div>
 
               ${r.additionalQuestions ? `
               <div class="report-section" style="margin-bottom: 0; margin-top: 1rem;">
-                <div class="report-section-label"><span class="section-letter" style="background: var(--primary);">G</span> Additional Questions / Notes</div>
+                <div class="report-section-label"><span class="section-letter">G</span> Additional Questions / Notes</div>
                 <div class="report-section-content">${Utils.escHtml(r.additionalQuestions)}</div>
               </div>` : ''}
             </div>
@@ -178,4 +256,5 @@
     }
   </script>
 </body>
+
 </html>

@@ -1,21 +1,24 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Submission Review Queue — ITPAS Manager</title>
+  <title>Submission Review Queue - InternSpect</title>
   <link rel="stylesheet" href="../css/main.css">
   <link rel="stylesheet" href="../css/components.css">
   <link rel="stylesheet" href="../css/dark-mode.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel='stylesheet' href='https://cdn-uicons.flaticon.com/uicons-bold-straight/css/uicons-bold-straight.css'>
 </head>
+
 <body>
   <div class="app-shell">
     <aside class="sidebar" id="sidebar">
       <div class="sidebar-brand">
-        <div class="sidebar-brand-icon"><i class="fa-solid fa-graduation-cap"></i></div>
+        <div class="sidebar-brand-icon"><i class="fi fi-bs-rocket-lunch"></i></div>
         <div class="sidebar-brand-text">
-          <div class="brand-name">ITPAS</div>
+          <div class="brand-name">InternSpect</div>
           <div class="brand-sub">Manager Portal</div>
         </div>
       </div>
@@ -32,14 +35,15 @@
         <a href="interns.html" class="nav-item"><i class="fa-solid fa-users nav-icon"></i> Interns</a>
         <a href="add-intern.html" class="nav-item"><i class="fa-solid fa-user-plus nav-icon"></i> Register Intern</a>
         <a href="tasks.html" class="nav-item"><i class="fa-solid fa-list-check nav-icon"></i> Task Management</a>
-        <a href="review-queue.html" class="nav-item active"><i class="fa-solid fa-clock-rotate-left nav-icon"></i> Review Queue</a>
-        <a href="progress.html" class="nav-item"><i class="fa-solid fa-chart-line nav-icon"></i> Progress Dashboard</a>
+        <a href="review-queue.html" class="nav-item active"><i class="fa-solid fa-clock-rotate-left nav-icon"></i>
+          Review Queue</a>
         <a href="reports.html" class="nav-item"><i class="fa-solid fa-file-lines nav-icon"></i> Daily Reports</a>
         <div class="nav-section-label">Account</div>
         <a href="profile.html" class="nav-item"><i class="fa-solid fa-user-gear nav-icon"></i> Profile Settings</a>
       </nav>
       <div class="sidebar-footer">
-        <a href="#" class="nav-item" onclick="Auth.logout()"><i class="fa-solid fa-right-from-bracket nav-icon"></i> Logout</a>
+        <a href="#" class="nav-item" onclick="Auth.logout()"><i class="fa-solid fa-right-from-bracket nav-icon"></i>
+          Logout</a>
       </div>
     </aside>
 
@@ -53,22 +57,82 @@
 
     <main class="main-content">
       <!-- Search & Sort Controls -->
-      <div class="search-filter-bar">
-        <div class="search-box">
-          <i class="fa-solid fa-magnifying-glass search-icon"></i>
-          <input type="text" id="search-input" class="form-control" placeholder="Search by intern name or task..." oninput="renderQueue()">
+      <div class="search-filter-bar" style="display: flex; gap: 0.75rem; align-items: center; flex-wrap: wrap;">
+        <!-- Intern Searchable Dropdown -->
+        <div class="custom-dropdown" id="intern-dropdown-container"
+          style="position: relative; flex: 1; min-width: 200px;">
+          <input type="hidden" id="filter-intern" value="all" onchange="renderQueue()">
+          <button id="intern-dropdown-btn" class="btn-primary"
+            style="width: 100%; padding: 0.6rem 2.2rem 0.6rem 1rem; border: none; background-image: url(&quot;data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='%23ffffff'%3E%3Cpath d='M7.247 11.14L2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z'/%3E%3C/svg%3E&quot;), linear-gradient(135deg, var(--primary), var(--primary-dark)); background-repeat: no-repeat; background-position: right 0.8rem center, center; background-size: 10px, auto; color: #ffffff; text-align: left; border-radius: var(--radius-sm); font-size: 0.9rem; font-weight: 600; cursor: pointer; box-shadow: 0 4px 10px rgba(0,0,0,0.1);"
+            onclick="toggleDropdown('intern-dropdown-menu')">
+            All Interns
+          </button>
+          <div id="intern-dropdown-menu" class="dropdown-menu"
+            style="display: none; position: absolute; top: 100%; left: 0; right: 0; z-index: 100; background: var(--bg-surface); border: 2px solid var(--border-light); border-radius: var(--radius-sm); margin-top: 4px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); overflow: hidden;">
+            <div
+              style="padding: 0.5rem; border-bottom: 1px solid var(--border-light); background: var(--bg-surface-2);">
+              <input type="text" id="intern-search-input" placeholder="Search intern name..."
+                style="width: 100%; padding: 0.5rem; border: 1px solid var(--border-light); border-radius: var(--radius-sm); font-size: 0.85rem; outline: none; color: var(--text-primary); background: var(--bg-surface);"
+                oninput="filterDropdownList('intern-search-input', 'intern-dropdown-list')"
+                onclick="event.stopPropagation()">
+            </div>
+            <div id="intern-dropdown-list" style="max-height: 250px; overflow-y: auto; padding: 0.25rem 0;">
+              <!-- Populated by JS -->
+            </div>
+          </div>
         </div>
-        <select id="sort-select" class="form-control" style="width: auto; min-width: 180px;" onchange="renderQueue()">
-          <option value="newest">Sort: Newest First</option>
-          <option value="oldest">Sort: Oldest First</option>
-          <option value="longest">Sort: Longest Waiting</option>
-        </select>
-        <select id="status-filter" class="form-control" style="width: auto; min-width: 180px;" onchange="renderQueue()">
-          <option value="Pending Review">Status: Pending Review</option>
-          <option value="Completed">Status: Completed</option>
-          <option value="Request Revision">Status: Request Revision</option>
-          <option value="all">Status: All Submissions</option>
-        </select>
+
+        <!-- Task Searchable Dropdown -->
+        <div class="custom-dropdown" id="task-dropdown-container"
+          style="position: relative; flex: 1; min-width: 200px;">
+          <input type="hidden" id="filter-task" value="all" onchange="renderQueue()">
+          <button id="task-dropdown-btn" class="btn-primary"
+            style="width: 100%; padding: 0.6rem 2.2rem 0.6rem 1rem; border: none; background-image: url(&quot;data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='%23ffffff'%3E%3Cpath d='M7.247 11.14L2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z'/%3E%3C/svg%3E&quot;), linear-gradient(135deg, var(--primary), var(--primary-dark)); background-repeat: no-repeat; background-position: right 0.8rem center, center; background-size: 10px, auto; color: #ffffff; text-align: left; border-radius: var(--radius-sm); font-size: 0.9rem; font-weight: 600; cursor: pointer; box-shadow: 0 4px 10px rgba(0,0,0,0.1);"
+            onclick="toggleDropdown('task-dropdown-menu')">
+            All Tasks
+          </button>
+          <div id="task-dropdown-menu" class="dropdown-menu"
+            style="display: none; position: absolute; top: 100%; left: 0; right: 0; z-index: 100; background: var(--bg-surface); border: 2px solid var(--border-light); border-radius: var(--radius-sm); margin-top: 4px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); overflow: hidden;">
+            <div
+              style="padding: 0.5rem; border-bottom: 1px solid var(--border-light); background: var(--bg-surface-2);">
+              <input type="text" id="task-search-input" placeholder="Search task title..."
+                style="width: 100%; padding: 0.5rem; border: 1px solid var(--border-light); border-radius: var(--radius-sm); font-size: 0.85rem; outline: none; color: var(--text-primary); background: var(--bg-surface);"
+                oninput="filterDropdownList('task-search-input', 'task-dropdown-list')"
+                onclick="event.stopPropagation()">
+            </div>
+            <div id="task-dropdown-list" style="max-height: 250px; overflow-y: auto; padding: 0.25rem 0;">
+              <!-- Populated by JS -->
+            </div>
+          </div>
+        </div>
+
+        <!-- Status Dropdown (No Search) -->
+        <div class="custom-dropdown" id="status-dropdown-container"
+          style="position: relative; flex: 1; min-width: 200px;">
+          <input type="hidden" id="status-filter" value="all" onchange="renderQueue()">
+          <button id="status-dropdown-btn" class="btn-primary"
+            style="width: 100%; padding: 0.6rem 2.2rem 0.6rem 1rem; border: none; background-image: url(&quot;data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='%23ffffff'%3E%3Cpath d='M7.247 11.14L2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z'/%3E%3C/svg%3E&quot;), linear-gradient(135deg, var(--primary), var(--primary-dark)); background-repeat: no-repeat; background-position: right 0.8rem center, center; background-size: 10px, auto; color: #ffffff; text-align: left; border-radius: var(--radius-sm); font-size: 0.9rem; font-weight: 600; cursor: pointer; box-shadow: 0 4px 10px rgba(0,0,0,0.1);"
+            onclick="toggleDropdown('status-dropdown-menu')">
+            Status: All Submissions
+          </button>
+          <div id="status-dropdown-menu" class="dropdown-menu"
+            style="display: none; position: absolute; top: 100%; left: 0; right: 0; z-index: 100; background: var(--bg-surface); border: 2px solid var(--border-light); border-radius: var(--radius-sm); margin-top: 4px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); overflow: hidden;">
+            <div id="status-dropdown-list" style="max-height: 250px; overflow-y: auto; padding: 0.25rem 0;">
+              <div class="dropdown-item"
+                onclick="selectDropdownOption('status-filter', 'status-dropdown-btn', 'all', 'Status: All Submissions')">
+                Status: All Submissions</div>
+              <div class="dropdown-item"
+                onclick="selectDropdownOption('status-filter', 'status-dropdown-btn', 'Pending Review', 'Status: Pending Review')">
+                Status: Pending Review</div>
+              <div class="dropdown-item"
+                onclick="selectDropdownOption('status-filter', 'status-dropdown-btn', 'Completed', 'Status: Completed')">
+                Status: Completed</div>
+              <div class="dropdown-item"
+                onclick="selectDropdownOption('status-filter', 'status-dropdown-btn', 'Request Revision', 'Status: Request Revision')">
+                Status: Request Revision</div>
+            </div>
+          </div>
+        </div>
       </div>
 
       <!-- Queue List -->
@@ -87,7 +151,8 @@
         <input type="hidden" id="review-sub-id">
         <input type="hidden" id="review-intern-id">
 
-        <div style="display: flex; gap: 1.25rem; align-items: center; background: var(--bg-surface-2); padding: 1rem; border-radius: var(--radius-md); margin-bottom: 1.25rem;">
+        <div
+          style="display: flex; gap: 1.25rem; align-items: center; background: var(--bg-surface-2); padding: 1rem; border-radius: var(--radius-md); margin-bottom: 1.25rem;">
           <div id="modal-intern-avatar"></div>
           <div>
             <div id="modal-intern-name" style="font-weight: 700; font-size: 1.1rem; color: var(--text-primary);"></div>
@@ -97,7 +162,8 @@
         </div>
 
         <div style="margin-bottom: 1.25rem;">
-          <div style="font-weight: 700; font-size: 0.95rem; color: var(--text-primary); margin-bottom: 0.25rem;" id="modal-task-heading"></div>
+          <div style="font-weight: 700; font-size: 0.95rem; color: var(--text-primary); margin-bottom: 0.25rem;"
+            id="modal-task-heading"></div>
           <div style="font-size: 0.85rem; color: var(--text-secondary);" id="modal-task-desc"></div>
         </div>
 
@@ -105,7 +171,9 @@
         <div style="margin-bottom: 1.25rem;">
           <div class="form-label">Submitted Content</div>
           <div id="modal-file-preview-area"></div>
-          <div id="modal-freetext-area" style="margin-top: 0.75rem; font-size: 0.875rem; color: var(--text-primary); background: var(--bg-surface-2); padding: 1rem; border-radius: var(--radius-md); border: 1px solid var(--border-light); white-space: pre-wrap;"></div>
+          <div id="modal-freetext-area"
+            style="margin-top: 0.75rem; font-size: 0.875rem; color: var(--text-primary); background: var(--bg-surface-2); padding: 1rem; border-radius: var(--radius-md); border: 1px solid var(--border-light); white-space: pre-wrap;">
+          </div>
         </div>
 
         <hr style="border: 0; border-top: 1px solid var(--border-light); margin: 1.5rem 0;">
@@ -113,17 +181,20 @@
         <!-- Feedback & Review Form -->
         <div class="form-group">
           <label class="form-label" for="review-feedback">Manager Feedback / Revision Notes <span>*</span></label>
-          <textarea id="review-feedback" class="form-control" rows="3" placeholder="Provide constructive feedback or specify required revisions..." required></textarea>
+          <textarea id="review-feedback" class="form-control" rows="3"
+            placeholder="Provide constructive feedback or specify required revisions..." required></textarea>
         </div>
       </div>
 
       <div class="modal-footer" style="justify-content: space-between;">
         <button type="button" class="btn btn-ghost" onclick="closeReviewModal()">Cancel</button>
         <div style="display: flex; gap: 0.75rem;">
-          <button type="button" class="btn btn-warning" onclick="submitReviewAction('Request Revision')">
+          <button type="button" id="btn-request-revision" class="btn btn-warning"
+            onclick="submitReviewAction('Request Revision')">
             <i class="fa-solid fa-rotate-left"></i> Request Revision
           </button>
-          <button type="button" class="btn btn-success" onclick="submitReviewAction('Completed')">
+          <button type="button" id="btn-mark-completed" class="btn btn-success"
+            onclick="submitReviewAction('Completed')">
             <i class="fa-solid fa-circle-check"></i> Mark Completed & Check Unlock
           </button>
         </div>
@@ -131,23 +202,25 @@
     </div>
   </div>
 
+  <script src="../js/api.js"></script>
   <script src="../js/db.js"></script>
   <script src="../js/auth.js"></script>
   <script src="../js/automation.js"></script>
   <script src="../js/notifications.js"></script>
   <script src="../js/utils.js"></script>
   <script>
-    Auth.requireRole('manager');
-    const user = Auth.currentUser();
+    let user;
 
-    document.addEventListener('DOMContentLoaded', () => {
+    document.addEventListener('DOMContentLoaded', async () => {
+      if (!await Auth.requireRole('manager')) return;
+      user = Auth.currentUser();
       document.getElementById('user-name-label').textContent = user.name;
       document.getElementById('user-avatar-slot').innerHTML = Utils.avatarHtml(user, 36);
 
-      // Check URL param for auto-open
       const urlParams = new URLSearchParams(window.location.search);
       const subId = urlParams.get('subId');
 
+      populateFilters();
       renderQueue();
 
       if (subId) {
@@ -155,36 +228,98 @@
       }
     });
 
+    function toggleDropdown(menuId) {
+      const menu = document.getElementById(menuId);
+      const isVisible = menu.style.display === 'block';
+      document.querySelectorAll('.dropdown-menu').forEach(m => m.style.display = 'none');
+      if (!isVisible) {
+        menu.style.display = 'block';
+        const input = menu.querySelector('input[type="text"]');
+        if (input) input.focus();
+      }
+    }
+
+    document.addEventListener('click', (e) => {
+      if (!e.target.closest('.custom-dropdown')) {
+        document.querySelectorAll('.dropdown-menu').forEach(m => m.style.display = 'none');
+      }
+    });
+
+    function filterDropdownList(inputId, listId) {
+      const q = document.getElementById(inputId).value.toLowerCase();
+      const items = document.getElementById(listId).querySelectorAll('.dropdown-item');
+      items.forEach(item => {
+        const text = item.textContent.toLowerCase();
+        item.style.display = text.includes(q) ? 'block' : 'none';
+      });
+    }
+
+    function selectDropdownOption(hiddenInputId, btnId, value, text) {
+      document.getElementById(hiddenInputId).value = value;
+      document.getElementById(btnId).textContent = text;
+      document.querySelectorAll('.dropdown-menu').forEach(m => m.style.display = 'none');
+      const event = new Event('change');
+      document.getElementById(hiddenInputId).dispatchEvent(event);
+    }
+
+    function populateFilters() {
+      const internList = document.getElementById('intern-dropdown-list');
+      internList.innerHTML = `<div class="dropdown-item" onclick="selectDropdownOption('filter-intern', 'intern-dropdown-btn', 'all', 'All Interns')">All Interns</div>`;
+
+      const interns = DB.Interns.allWithUsers();
+      interns.forEach(i => {
+        const div = document.createElement('div');
+        div.className = 'dropdown-item';
+        div.textContent = i.user.name;
+        div.onclick = () => selectDropdownOption('filter-intern', 'intern-dropdown-btn', i.id, i.user.name);
+        internList.appendChild(div);
+      });
+
+      const taskList = document.getElementById('task-dropdown-list');
+      taskList.innerHTML = `<div class="dropdown-item" onclick="selectDropdownOption('filter-task', 'task-dropdown-btn', 'all', 'All Tasks')">All Tasks</div>`;
+
+      const tasks = DB.Tasks.all();
+      tasks.forEach(t => {
+        const div = document.createElement('div');
+        div.className = 'dropdown-item';
+        div.textContent = `Task ${t.taskNumber}: ${t.title}`;
+        div.onclick = () => selectDropdownOption('filter-task', 'task-dropdown-btn', t.taskNumber, `Task ${t.taskNumber}: ${t.title}`);
+        taskList.appendChild(div);
+      });
+    }
+
     function renderQueue() {
-      const q = document.getElementById('search-input').value.trim().toLowerCase();
-      const sort = document.getElementById('sort-select').value;
-      const filter = document.getElementById('status-filter').value;
+      const filterIntern = document.getElementById('filter-intern').value;
+      const filterTask = document.getElementById('filter-task').value;
+      const filterStatus = document.getElementById('status-filter').value;
       const container = document.getElementById('queue-container');
 
-      let submissions = DB.Submissions.all();
+      let allSubmissions = DB.Submissions.all();
 
-      if (filter !== 'all') {
-        submissions = submissions.filter(s => s.status === filter);
+      // Filter out older submissions for the same assignment (only show the latest one)
+      const latestMap = new Map();
+      allSubmissions.forEach(s => {
+        const key = s.assignmentId;
+        if (!latestMap.has(key) || new Date(s.submittedAt) > new Date(latestMap.get(key).submittedAt)) {
+          latestMap.set(key, s);
+        }
+      });
+      let submissions = Array.from(latestMap.values());
+
+      if (filterStatus !== 'all') {
+        submissions = submissions.filter(s => s.status === filterStatus);
       }
 
-      // Filter by search
-      submissions = submissions.filter(s => {
-        const intern = DB.Interns.find(s.internId);
-        const internUser = intern ? DB.Users.find(intern.userId) : null;
-        const task = DB.Tasks.findByNumber(s.taskNumber);
-        const nameMatch = internUser && internUser.name.toLowerCase().includes(q);
-        const taskMatch = task && (task.title.toLowerCase().includes(q) || `task ${s.taskNumber}`.includes(q));
-        return !q || nameMatch || taskMatch;
-      });
+      if (filterIntern !== 'all') {
+        submissions = submissions.filter(s => s.internId === filterIntern);
+      }
 
-      // Sort
-      submissions.sort((a, b) => {
-        const dateA = new Date(a.submittedAt).getTime();
-        const dateB = new Date(b.submittedAt).getTime();
-        if (sort === 'newest') return dateB - dateA;
-        if (sort === 'oldest' || sort === 'longest') return dateA - dateB;
-        return 0;
-      });
+      if (filterTask !== 'all') {
+        submissions = submissions.filter(s => s.taskNumber == filterTask);
+      }
+
+      // Sort by newest always
+      submissions.sort((a, b) => new Date(b.submittedAt).getTime() - new Date(a.submittedAt).getTime());
 
       if (!submissions.length) {
         container.innerHTML = `
@@ -258,6 +393,7 @@
       // File preview
       const previewArea = document.getElementById('modal-file-preview-area');
       if (sub.fileData) {
+        const fileUrl = sub.fileData + '?token=' + encodeURIComponent(API.getToken());
         previewArea.innerHTML = `
           <div class="file-preview">
             <div class="file-preview-icon">${Utils.getFileIcon(sub.fileType)}</div>
@@ -265,7 +401,7 @@
               <div class="file-preview-name">${Utils.escHtml(sub.fileName)}</div>
               <div class="file-preview-meta">Uploaded File</div>
             </div>
-            <a href="${sub.fileData}" download="${sub.fileName}" class="btn btn-ghost btn-sm">
+            <a href="${fileUrl}" download="${sub.fileName}" class="btn btn-ghost btn-sm">
               <i class="fa-solid fa-download"></i> Download
             </a>
           </div>`;
@@ -284,7 +420,16 @@
 
       // Populate existing feedback if any
       const existingFb = DB.Feedback.latestForSubmission(sub.id);
-      document.getElementById('review-feedback').value = existingFb ? existingFb.comments : '';
+      const feedbackInput = document.getElementById('review-feedback');
+      feedbackInput.value = existingFb ? existingFb.comments : '';
+
+      const isReviewed = sub.status !== 'Pending Review';
+      feedbackInput.readOnly = isReviewed;
+
+      const btnRevision = document.getElementById('btn-request-revision');
+      const btnCompleted = document.getElementById('btn-mark-completed');
+      if (btnRevision) btnRevision.disabled = isReviewed;
+      if (btnCompleted) btnCompleted.disabled = isReviewed;
 
       document.getElementById('review-modal').classList.add('open');
     }
@@ -293,7 +438,7 @@
       document.getElementById('review-modal').classList.remove('open');
     }
 
-    function submitReviewAction(newStatus) {
+    async function submitReviewAction(newStatus) {
       const subId = document.getElementById('review-sub-id').value;
       const internId = document.getElementById('review-intern-id').value;
       const feedbackText = document.getElementById('review-feedback').value.trim();
@@ -306,39 +451,34 @@
       const sub = DB.Submissions.find(subId);
       if (!sub) return;
 
-      // Update submission status
-      DB.Submissions.update(subId, { status: newStatus });
+      try {
+        DB.Submissions.update(subId, { status: newStatus });
 
-      // Update Assignment status
-      const assignment = DB.Assignments.find(sub.assignmentId);
-      if (assignment) {
-        DB.Assignments.update(assignment.id, { status: newStatus });
+        const assignment = DB.Assignments.find(sub.assignmentId);
+        if (assignment) {
+          DB.Assignments.update(assignment.id, { status: newStatus });
+        }
+
+        await DB.Feedback.create({
+          submissionId: subId,
+          internId: internId,
+          managerId: user.id,
+          comments: feedbackText,
+          status: newStatus,
+        });
+
+        if (newStatus === 'Completed') {
+          Utils.toast(`Task ${sub.taskNumber} marked as Completed!`, 'success');
+          await Automation.checkAndUnlockNextPair(internId);
+        } else if (newStatus === 'Request Revision') {
+          Utils.toast(`Revision requested for Task ${sub.taskNumber}.`, 'warning');
+        }
+
+        closeReviewModal();
+        renderQueue();
+      } catch (err) {
+        Utils.toast(err.message || 'Review failed', 'error');
       }
-
-      // Create Feedback Record
-      DB.Feedback.create({
-        submissionId: subId,
-        managerId: user.id,
-        comments: feedbackText,
-        status: newStatus,
-      });
-
-      const intern = DB.Interns.find(internId);
-      const internUser = intern ? DB.Users.find(intern.userId) : null;
-
-      if (newStatus === 'Completed') {
-        if (internUser) NotifyEvent.taskCompleted(internUser.id, sub.taskNumber);
-        Utils.toast(`Task ${sub.taskNumber} marked as Completed!`, 'success');
-
-        // 🔥 Core Automation Engine Trigger 🔥
-        Automation.checkAndUnlockNextPair(internId);
-      } else if (newStatus === 'Request Revision') {
-        if (internUser) NotifyEvent.revisionRequested(internUser.id, sub.taskNumber, feedbackText);
-        Utils.toast(`Revision requested for Task ${sub.taskNumber}.`, 'warning');
-      }
-
-      closeReviewModal();
-      renderQueue();
     }
 
     function toggleSidebar() {
@@ -346,4 +486,5 @@
     }
   </script>
 </body>
+
 </html>

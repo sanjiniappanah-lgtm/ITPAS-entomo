@@ -126,7 +126,7 @@ const Utils = {
     if (!session) return;
     const container = document.getElementById(containerId);
     if (!container) return;
-    const notifications = DB.Notifications.forUser(session.userId).slice(0, 10);
+    const notifications = DB.Notifications.forUser(session.userId).filter(n => !n.read).slice(0, 10);
     if (!notifications.length) {
       container.innerHTML = '<p class="notif-empty">No notifications yet.</p>';
       return;
@@ -143,9 +143,13 @@ const Utils = {
   },
 
   markNotifRead(id, el) {
-    DB.Notifications.markRead(id);
-    if (el) el.classList.add('read');
-    this.updateNotificationBadge();
+    DB.Notifications.markRead(id).then(() => {
+      this.updateNotificationBadge();
+      const session = Auth.getSession();
+      if (session) {
+        this.renderNotificationDropdown('notif-list-container');
+      }
+    });
   },
 
   // ── Pagination ────────────────────────────────────────────────────────────
@@ -177,16 +181,23 @@ const Utils = {
   },
 
   // ── Search & Filter Helpers ───────────────────────────────────────────────
-  searchInterns(query) {
+  searchInterns(query, category = 'all') {
     const interns = DB.Interns.allWithUsers();
     if (!query) return interns;
     const q = query.toLowerCase();
-    return interns.filter(i =>
-      i.user.name.toLowerCase().includes(q) ||
-      i.user.email.toLowerCase().includes(q) ||
-      i.university.toLowerCase().includes(q) ||
-      i.course.toLowerCase().includes(q)
-    );
+    return interns.filter(i => {
+      const matchName = i.user.name.toLowerCase().includes(q);
+      const matchEmail = i.user.email.toLowerCase().includes(q);
+      const matchUni = i.university.toLowerCase().includes(q);
+      const matchCourse = i.course.toLowerCase().includes(q);
+      
+      if (category === 'name') return matchName;
+      if (category === 'email') return matchEmail;
+      if (category === 'university') return matchUni;
+      if (category === 'course') return matchCourse;
+      
+      return matchName || matchEmail || matchUni || matchCourse;
+    });
   },
 
   // ── Avatar / Photo ────────────────────────────────────────────────────────

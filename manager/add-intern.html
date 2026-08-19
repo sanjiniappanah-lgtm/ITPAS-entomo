@@ -1,21 +1,24 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Onboard Intern — ITPAS Manager</title>
+  <title>Onboard Intern - InternSpect</title>
   <link rel="stylesheet" href="../css/main.css">
   <link rel="stylesheet" href="../css/components.css">
   <link rel="stylesheet" href="../css/dark-mode.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel='stylesheet' href='https://cdn-uicons.flaticon.com/uicons-bold-straight/css/uicons-bold-straight.css'>
 </head>
+
 <body>
   <div class="app-shell">
     <aside class="sidebar" id="sidebar">
       <div class="sidebar-brand">
-        <div class="sidebar-brand-icon"><i class="fa-solid fa-graduation-cap"></i></div>
+        <div class="sidebar-brand-icon"><i class="fi fi-bs-rocket-lunch"></i></div>
         <div class="sidebar-brand-text">
-          <div class="brand-name">ITPAS</div>
+          <div class="brand-name">InternSpect</div>
           <div class="brand-sub">Manager Portal</div>
         </div>
       </div>
@@ -30,16 +33,18 @@
         <div class="nav-section-label">Main Menu</div>
         <a href="dashboard.html" class="nav-item"><i class="fa-solid fa-chart-pie nav-icon"></i> Overview</a>
         <a href="interns.html" class="nav-item"><i class="fa-solid fa-users nav-icon"></i> Interns</a>
-        <a href="add-intern.html" class="nav-item active"><i class="fa-solid fa-user-plus nav-icon"></i> Register Intern</a>
+        <a href="add-intern.html" class="nav-item active"><i class="fa-solid fa-user-plus nav-icon"></i> Register
+          Intern</a>
         <a href="tasks.html" class="nav-item"><i class="fa-solid fa-list-check nav-icon"></i> Task Management</a>
-        <a href="review-queue.html" class="nav-item"><i class="fa-solid fa-clock-rotate-left nav-icon"></i> Review Queue</a>
-        <a href="progress.html" class="nav-item"><i class="fa-solid fa-chart-line nav-icon"></i> Progress Dashboard</a>
+        <a href="review-queue.html" class="nav-item"><i class="fa-solid fa-clock-rotate-left nav-icon"></i> Review
+          Queue</a>
         <a href="reports.html" class="nav-item"><i class="fa-solid fa-file-lines nav-icon"></i> Daily Reports</a>
         <div class="nav-section-label">Account</div>
         <a href="profile.html" class="nav-item"><i class="fa-solid fa-user-gear nav-icon"></i> Profile Settings</a>
       </nav>
       <div class="sidebar-footer">
-        <a href="#" class="nav-item" onclick="Auth.logout()"><i class="fa-solid fa-right-from-bracket nav-icon"></i> Logout</a>
+        <a href="#" class="nav-item" onclick="Auth.logout()"><i class="fa-solid fa-right-from-bracket nav-icon"></i>
+          Logout</a>
       </div>
     </aside>
 
@@ -47,18 +52,12 @@
       <button class="hamburger-btn" onclick="toggleSidebar()"><i class="fa-solid fa-bars"></i></button>
       <div>
         <h1 class="topbar-title">Intern Onboarding</h1>
-        <div class="topbar-subtitle">Register a new intern and trigger automated Task 1 & 2 assignment</div>
+        <div class="topbar-subtitle">Register New Intern</div>
       </div>
     </header>
 
     <main class="main-content">
       <div style="max-width: 800px; margin: 0 auto;">
-        <div class="alert-banner alert-info">
-          <i class="fa-solid fa-wand-magic-sparkles"></i>
-          <div>
-            <strong>Automation Rule Active:</strong> Upon clicking <strong>Register & Assign Initial Tasks</strong>, the system will automatically create the intern profile and assign <strong>Task 1</strong> and <strong>Task 2</strong> with status <em>In Progress</em>.
-          </div>
-        </div>
 
         <div class="card">
           <form id="onboard-form" onsubmit="handleRegisterIntern(event)">
@@ -74,46 +73,43 @@
 
               <div class="form-group">
                 <label class="form-label" for="email">Email Address <span>*</span></label>
-                <input type="email" id="email" class="form-control" placeholder="e.g. sarah.tan@student.utm.my" required>
+                <input type="email" id="email" class="form-control" placeholder="e.g. sarah.tan@student.utm.my"
+                  required>
               </div>
             </div>
 
             <div class="form-row">
-              <div class="form-group">
-                <label class="form-label" for="username">Username (Optional)</label>
-                <input type="text" id="username" class="form-control" placeholder="e.g. sarahtan">
-              </div>
-
               <div class="form-group">
                 <label class="form-label" for="password">Password <span>*</span></label>
                 <input type="password" id="password" class="form-control" placeholder="••••••••" required>
               </div>
-            </div>
 
-            <div class="form-row">
               <div class="form-group">
                 <label class="form-label" for="phone">Phone Number <span>*</span></label>
                 <input type="tel" id="phone" class="form-control" placeholder="e.g. +60 12-345 6789" required>
               </div>
-
-              <div class="form-group">
-                <label class="form-label" for="university">University / Institution <span>*</span></label>
-                <input type="text" id="university" class="form-control" placeholder="e.g. Universiti Teknologi Malaysia" required>
-              </div>
             </div>
 
             <div class="form-row">
               <div class="form-group">
-                <label class="form-label" for="course">Course / Field of Study <span>*</span></label>
-                <input type="text" id="course" class="form-control" placeholder="e.g. Bachelor of Software Engineering" required>
+                <label class="form-label" for="university">University / Institution <span>*</span></label>
+                <input type="text" id="university" class="form-control" placeholder="e.g. Universiti Teknologi Malaysia"
+                  required>
               </div>
 
               <div class="form-group">
-                <label class="form-label" for="photo-upload">Profile Photo Upload (Optional)</label>
-                <input type="file" id="photo-upload" class="form-control" accept="image/*" onchange="previewPhoto(this)">
-                <div id="photo-preview" style="margin-top: 0.5rem;"></div>
+                <label class="form-label" for="course">Course / Field of Study <span>*</span></label>
+                <input type="text" id="course" class="form-control" placeholder="e.g. Bachelor of Software Engineering"
+                  required>
               </div>
             </div>
+
+            <div class="form-group">
+              <label class="form-label" for="photo-upload">Profile Photo Upload (Optional)</label>
+              <input type="file" id="photo-upload" class="form-control" accept="image/*" onchange="previewPhoto(this)">
+              <div id="photo-preview" style="margin-top: 0.5rem;"></div>
+            </div>
+
 
             <hr style="border: 0; border-top: 1px solid var(--border-light); margin: 1.5rem 0;">
 
@@ -135,7 +131,7 @@
 
             <div style="display: flex; justify-content: flex-end; gap: 1rem; margin-top: 1.5rem;">
               <a href="interns.html" class="btn btn-ghost">Cancel</a>
-              <button type="submit" class="btn btn-primary btn-lg">
+              <button type="submit" class="btn btn-primary">
                 <i class="fa-solid fa-user-check"></i> Register
               </button>
             </div>
@@ -145,21 +141,22 @@
     </main>
   </div>
 
+  <script src="../js/api.js"></script>
   <script src="../js/db.js"></script>
   <script src="../js/auth.js"></script>
   <script src="../js/automation.js"></script>
   <script src="../js/notifications.js"></script>
   <script src="../js/utils.js"></script>
   <script>
-    Auth.requireRole('manager');
-    const user = Auth.currentUser();
+    let user;
     let uploadedPhotoBase64 = '';
 
-    document.addEventListener('DOMContentLoaded', () => {
+    document.addEventListener('DOMContentLoaded', async () => {
+      if (!await Auth.requireRole('manager')) return;
+      user = Auth.currentUser();
       document.getElementById('user-name-label').textContent = user.name;
       document.getElementById('user-avatar-slot').innerHTML = Utils.avatarHtml(user, 36);
 
-      // Set default start & end dates
       const today = new Date();
       const threeMonthsLater = new Date();
       threeMonthsLater.setMonth(today.getMonth() + 3);
@@ -180,52 +177,45 @@
       }
     }
 
-    function handleRegisterIntern(e) {
+    async function handleRegisterIntern(e) {
       e.preventDefault();
       const email = document.getElementById('email').value.trim();
       const fullName = document.getElementById('full-name').value.trim();
+      const password = document.getElementById('password').value;
+      const phone = document.getElementById('phone').value.trim();
+      const university = document.getElementById('university').value.trim();
+      const course = document.getElementById('course').value.trim();
 
-      // Check if user already exists
       if (DB.Users.findByEmail(email)) {
         Utils.toast(`An account with email ${email} already exists.`, 'error');
         return;
       }
 
-      // Create User account
-      const newInternUser = DB.Users.create({
-        role: 'intern',
-        username: document.getElementById('username').value.trim() || email.split('@')[0],
-        email: email,
-        password: document.getElementById('password').value,
-        name: fullName,
-        phone: document.getElementById('phone').value.trim(),
-        photo: uploadedPhotoBase64,
-      });
+      const submitBtn = e.target.querySelector('button[type="submit"]');
+      submitBtn.disabled = true;
 
-      // Create Intern Profile
-      const newIntern = DB.Interns.create({
-        userId: newInternUser.id,
-        university: document.getElementById('university').value.trim(),
-        course: document.getElementById('course').value.trim(),
-        startDate: document.getElementById('start-date').value,
-        endDate: document.getElementById('end-date').value,
-      });
+      try {
+        await DB.Interns.create({
+          name: fullName,
+          email: email,
+          password: password,
+          phone: phone,
+          photo: uploadedPhotoBase64,
+          university: university,
+          course: course,
+          startDate: document.getElementById('start-date').value,
+          endDate: document.getElementById('end-date').value,
+        });
 
-      // Automation Trigger: Assign Task 1 & Task 2
-      const task1 = DB.Tasks.findByNumber(1);
-      const task2 = DB.Tasks.findByNumber(2);
+        Utils.toast(`🎉 Intern ${fullName} successfully registered! Task 1 & 2 assigned automatically.`, 'success', 4000);
 
-      if (task1) DB.Assignments.create({ internId: newIntern.id, taskId: task1.id, taskNumber: 1, status: 'In Progress' });
-      if (task2) DB.Assignments.create({ internId: newIntern.id, taskId: task2.id, taskNumber: 2, status: 'In Progress' });
-
-      // Trigger events
-      NotifyEvent.internRegistered(fullName);
-
-      Utils.toast(`🎉 Intern ${fullName} successfully registered! Task 1 & 2 assigned automatically.`, 'success', 4000);
-
-      setTimeout(() => {
-        window.location.href = 'interns.html';
-      }, 1200);
+        setTimeout(() => {
+          window.location.href = 'interns.html';
+        }, 1200);
+      } catch (err) {
+        Utils.toast(err.message || 'Registration failed', 'error');
+        submitBtn.disabled = false;
+      }
     }
 
     function toggleSidebar() {
@@ -233,4 +223,5 @@
     }
   </script>
 </body>
+
 </html>

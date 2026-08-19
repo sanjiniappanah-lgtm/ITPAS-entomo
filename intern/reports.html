@@ -1,21 +1,24 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>My Daily Reports — ITPAS Intern</title>
+  <title>My Daily Reports - InternSpect</title>
   <link rel="stylesheet" href="../css/main.css">
   <link rel="stylesheet" href="../css/components.css">
   <link rel="stylesheet" href="../css/dark-mode.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel='stylesheet' href='https://cdn-uicons.flaticon.com/uicons-bold-straight/css/uicons-bold-straight.css'>
 </head>
+
 <body>
   <div class="app-shell">
     <aside class="sidebar" id="sidebar">
       <div class="sidebar-brand">
-        <div class="sidebar-brand-icon"><i class="fa-solid fa-graduation-cap"></i></div>
+        <div class="sidebar-brand-icon"><i class="fi fi-bs-rocket-lunch"></i></div>
         <div class="sidebar-brand-text">
-          <div class="brand-name">ITPAS</div>
+          <div class="brand-name">InternSpect</div>
           <div class="brand-sub">Intern Portal</div>
         </div>
       </div>
@@ -30,13 +33,16 @@
         <div class="nav-section-label">Main Menu</div>
         <a href="dashboard.html" class="nav-item"><i class="fa-solid fa-house nav-icon"></i> My Dashboard</a>
         <a href="tasks.html" class="nav-item"><i class="fa-solid fa-list-check nav-icon"></i> My Tasks</a>
-        <a href="daily-report.html" class="nav-item"><i class="fa-solid fa-pen-to-square nav-icon"></i> Submit Daily Report</a>
-        <a href="reports.html" class="nav-item active"><i class="fa-solid fa-clock-rotate-left nav-icon"></i> My Daily Reports</a>
+        <a href="daily-report.html" class="nav-item"><i class="fa-solid fa-pen-to-square nav-icon"></i> Submit Daily
+          Report</a>
+        <a href="reports.html" class="nav-item active"><i class="fa-solid fa-clock-rotate-left nav-icon"></i> My Daily
+          Reports</a>
         <div class="nav-section-label">Account</div>
         <a href="profile.html" class="nav-item"><i class="fa-solid fa-user nav-icon"></i> My Profile</a>
       </nav>
       <div class="sidebar-footer">
-        <a href="#" class="nav-item" onclick="Auth.logout()"><i class="fa-solid fa-right-from-bracket nav-icon"></i> Logout</a>
+        <a href="#" class="nav-item" onclick="Auth.logout()"><i class="fa-solid fa-right-from-bracket nav-icon"></i>
+          Logout</a>
       </div>
     </aside>
 
@@ -47,32 +53,38 @@
         <div class="topbar-subtitle">Review all your submitted daily internship log entries</div>
       </div>
       <div class="topbar-actions">
-        <a href="daily-report.html" class="btn btn-primary btn-sm">
-          <i class="fa-solid fa-plus"></i> Submit New Report
-        </a>
       </div>
     </header>
 
     <main class="main-content">
+      <div class="search-filter-bar"
+        style="display: flex; gap: 0.75rem; align-items: center; justify-content: flex-end; flex-wrap: wrap; width: 100%;">
+        <div style="margin-left: auto; display: flex; gap: 0.5rem;">
+          <a href="daily-report.html" class="btn btn-primary">
+            <i class="fa-solid fa-plus"></i> Submit New Report
+          </a>
+        </div>
+      </div>
+
       <div id="my-reports-container"></div>
     </main>
   </div>
 
+  <script src="../js/api.js"></script>
   <script src="../js/db.js"></script>
   <script src="../js/auth.js"></script>
   <script src="../js/utils.js"></script>
   <script>
-    Auth.requireRole('intern');
-    const user = Auth.currentUser();
-    const intern = DB.Interns.findByUserId(user.id);
+    let user, intern;
 
-    document.addEventListener('DOMContentLoaded', () => {
+    document.addEventListener('DOMContentLoaded', async () => {
+      if (!await Auth.requireRole('intern')) return;
+      user = Auth.currentUser();
+      intern = DB.Interns.findByUserId(user.id);
       document.getElementById('user-name-label').textContent = user.name;
       document.getElementById('user-avatar-slot').innerHTML = Utils.avatarHtml(user, 36);
 
-      if (intern) {
-        renderMyReports();
-      }
+      if (intern) renderMyReports();
     });
 
     function renderMyReports() {
@@ -104,7 +116,7 @@
                 <div class="report-submitter">Submitted on ${Utils.formatDateTime(r.submittedAt)} (${Utils.timeAgo(r.submittedAt)})</div>
               </div>
             </div>
-            <button class="btn btn-ghost btn-sm"><i class="fa-solid fa-chevron-down"></i> View Full Entry</button>
+            <button class="btn btn-primary btn-sm"><i class="fa-solid fa-chevron-down"></i> View Full Entry</button>
           </div>
 
           <div class="report-body" id="my-report-${r.id}">
@@ -134,13 +146,13 @@
             </div>
 
             <div class="report-section">
-              <div class="report-section-label" style="color: var(--danger);"><span class="section-letter" style="background: var(--danger);">F</span> Problems Faced</div>
-              <div class="report-section-content" style="border-left: 3px solid var(--danger);">${Utils.escHtml(r.problemsFaced || '—')}</div>
+              <div class="report-section-label"><span class="section-letter">F</span> Problems Faced</div>
+              <div class="report-section-content">${Utils.escHtml(r.problemsFaced || '—')}</div>
             </div>
 
             ${r.additionalQuestions ? `
             <div class="report-section" style="margin-bottom: 0; margin-top: 1rem;">
-              <div class="report-section-label"><span class="section-letter" style="background: var(--primary);">G</span> Additional Questions / Notes</div>
+              <div class="report-section-label"><span class="section-letter">G</span> Additional Questions / Notes</div>
               <div class="report-section-content">${Utils.escHtml(r.additionalQuestions)}</div>
             </div>` : ''}
           </div>
@@ -158,4 +170,5 @@
     }
   </script>
 </body>
+
 </html>
