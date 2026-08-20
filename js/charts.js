@@ -18,7 +18,9 @@ const Charts = {
     const canvas = document.getElementById(canvasId);
     if (!canvas) return;
 
-    const allAssignments = DB.Assignments.all();
+    const activeInterns = DB.Interns.allWithUsers().filter(i => i.user && i.user.status !== 'inactive');
+    const activeInternIds = new Set(activeInterns.map(i => i.id));
+    const allAssignments = DB.Assignments.all().filter(a => activeInternIds.has(a.internId));
     const counts = {
       Completed: allAssignments.filter(a => a.status === 'Completed').length,
       'Pending Review': allAssignments.filter(a => a.status === 'Pending Review').length,
@@ -58,7 +60,7 @@ const Charts = {
     const canvas = document.getElementById(canvasId);
     if (!canvas) return;
 
-    const interns = DB.Interns.allWithUsers().slice(0, 10);
+    const interns = DB.Interns.allWithUsers().filter(i => i.user && i.user.status !== 'inactive').slice(0, 10);
     const labels = interns.map(i => i.user.name.split(' ')[0]);
     const completed = interns.map(i => Automation.getSummary(i.id).completed);
     const pending = interns.map(i => Automation.getSummary(i.id).pending);
@@ -94,7 +96,9 @@ const Charts = {
     const canvas = document.getElementById(canvasId);
     if (!canvas) return;
 
-    const submissions = DB.Submissions.all();
+    const activeInterns = DB.Interns.allWithUsers().filter(i => i.user && i.user.status !== 'inactive');
+    const activeInternIds = new Set(activeInterns.map(i => i.id));
+    const submissions = DB.Submissions.all().filter(s => activeInternIds.has(s.internId));
     // Group by date (last 14 days)
     const days = [];
     for (let i = 13; i >= 0; i--) {

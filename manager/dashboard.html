@@ -197,10 +197,11 @@
     });
 
     function loadStats() {
-      const interns = DB.Interns.all();
-      const assignments = DB.Assignments.all();
+      const activeInterns = DB.Interns.allWithUsers().filter(i => i.user && i.user.status !== 'inactive');
+      const activeInternIds = new Set(activeInterns.map(i => i.id));
+      const assignments = DB.Assignments.all().filter(a => activeInternIds.has(a.internId));
 
-      document.getElementById('stat-total-interns').textContent = interns.length;
+      document.getElementById('stat-total-interns').textContent = activeInterns.length;
       document.getElementById('stat-completed-tasks').textContent = assignments.filter(a => a.status === 'Completed').length;
       document.getElementById('stat-pending-reviews').textContent = assignments.filter(a => a.status === 'Pending Review').length;
       document.getElementById('stat-revision-requests').textContent = assignments.filter(a => a.status === 'Request Revision').length;
@@ -211,7 +212,11 @@
 
     function loadReviewPreview() {
       const container = document.getElementById('review-preview-list');
-      const pendingSubmissions = DB.Submissions.pending().slice(0, 4);
+      const pendingSubmissions = DB.Submissions.pending().filter(sub => {
+        const intern = DB.Interns.find(sub.internId);
+        const internUser = intern ? DB.Users.find(intern.userId) : null;
+        return internUser && internUser.status !== 'inactive';
+      }).slice(0, 4);
 
       if (!pendingSubmissions.length) {
         container.innerHTML = `

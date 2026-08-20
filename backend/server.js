@@ -238,7 +238,7 @@ app.post('/api/interns', authMiddleware, requireManager, (req, res) => {
   const internUser = db.prepare('SELECT * FROM user WHERE userID = ?').get(userResult.lastInsertRowid);
   createNotification(
     userResult.lastInsertRowid,
-    'Welcome to ITPAS! Task 1 and Task 2 have been assigned to you.',
+    'Welcome to InternSpect! Task 1 and Task 2 have been assigned to you.',
     'success',
     '/intern/tasks.html'
   );

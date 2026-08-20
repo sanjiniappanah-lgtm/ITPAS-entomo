@@ -25,7 +25,7 @@ const Exporter = {
     doc.setTextColor(255, 255, 255);
     doc.setFontSize(22);
     doc.setFont('helvetica', 'bold');
-    doc.text('ITPAS — Internship Progress Report', 15, 18);
+    doc.text('InternSpect — Internship Progress Report', 15, 18);
     doc.setFontSize(11);
     doc.setFont('helvetica', 'normal');
     doc.text(`Generated: ${Utils.formatDateTime(new Date().toISOString())}`, 15, 30);
@@ -103,9 +103,9 @@ const Exporter = {
     // Footer
     doc.setFontSize(8);
     doc.setTextColor(150, 150, 150);
-    doc.text('ITPAS — Intern Task Progression Automation System', 15, 290);
+    doc.text('InternSpect — Intern Task Progression Automation System', 15, 290);
 
-    doc.save(`ITPAS_Progress_${user.name.replace(/\s+/g, '_')}.pdf`);
+    doc.save(`InternSpect_Progress_${user.name.replace(/\s+/g, '_')}.pdf`);
     Utils.toast('Progress report downloaded as PDF!', 'success');
   },
 
@@ -141,7 +141,7 @@ const Exporter = {
     ws['!cols'] = rows[0].map(() => ({ wch: 22 }));
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, 'Intern Progress');
-    XLSX.writeFile(wb, `ITPAS_AllInterns_${Utils.today()}.xlsx`);
+    XLSX.writeFile(wb, `InternSpect_AllInterns_${Utils.today()}.xlsx`);
     Utils.toast('Excel report downloaded!', 'success');
   },
 
@@ -171,7 +171,7 @@ const Exporter = {
     ws['!cols'] = [{ wch: 10 }, { wch: 40 }, { wch: 20 }, { wch: 22 }];
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, 'Tasks');
-    XLSX.writeFile(wb, `ITPAS_${(user?.name || 'Intern').replace(/\s+/g,'_')}_Tasks.xlsx`);
+    XLSX.writeFile(wb, `InternSpect_${(user?.name || 'Intern').replace(/\s+/g,'_')}_Tasks.xlsx`);
     Utils.toast('Task report downloaded!', 'success');
   },
 };

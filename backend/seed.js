@@ -59,8 +59,8 @@ function seed() {
   assignInitialTasks(intern.lastInsertRowid);
 
   const { createNotification } = require('./services/automation');
-  createNotification(internUser.lastInsertRowid, 'Welcome to ITPAS! Task 1 and Task 2 have been assigned to you.', 'success', '/intern/tasks.html');
-  createNotification(mgr.lastInsertRowid, 'Welcome to ITPAS Manager Portal. The system is ready.', 'info', '/manager/dashboard.html');
+  createNotification(internUser.lastInsertRowid, 'Welcome to InternSpect! Task 1 and Task 2 have been assigned to you.', 'success', '/intern/tasks.html');
+  createNotification(mgr.lastInsertRowid, 'Welcome to InternSpect Manager Portal. The system is ready.', 'info', '/manager/dashboard.html');
 
   console.log('[ITPAS Seed] Database seeded successfully.');
   console.log('  Manager: nantha.k@entomo.co / manager123');
