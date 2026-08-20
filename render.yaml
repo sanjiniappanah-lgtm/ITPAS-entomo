@@ -1,0 +1,19 @@
+services:
+  - type: web
+    name: itpas-entomo
+    env: node
+    buildCommand: npm install
+    startCommand: npm start
+    envVars:
+      - key: NODE_VERSION
+        value: 18.x
+      - key: JWT_SECRET
+        generateValue: true
+      - key: DB_PATH
+        value: /var/data/itpas.db
+      - key: UPLOAD_DIR
+        value: /var/data/uploads
+    disk:
+      name: itpas-data
+      mountPath: /var/data
+      sizeGB: 1
